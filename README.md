@@ -11,4 +11,6 @@
 
 - stl_string: 模拟实现stl的string
 
-- stl_vector: 模拟实现stl的vector（还未编写完成）
+- stl_vector: 模拟实现stl的vector
+
+- stl_list: 模拟实现stl的list（还未编写完成）
