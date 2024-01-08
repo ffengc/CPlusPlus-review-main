@@ -40,6 +40,7 @@ namespace yufc
         typedef Ptr pointer;
         typedef Ref reference;
         typedef ptrdiff_t difference_type;
+
     public:
         typedef __list_node<T> Node;
         Node *__node;
@@ -113,21 +114,66 @@ namespace yufc
         const_iterator end() const { return const_iterator(__head); }
 
     public:
-        list()
+        void empty_initialize()
         {
             __head = new Node;
             __head->__next = __head;
             __head->__prev = __head;
         }
+        list()
+        {
+            empty_initialize();
+        }
         list(const std::initializer_list<T> &init_lst)
         {
-            // 初始化
-            __head = new Node;
-            __head->__next = __head;
-            __head->__prev = __head;
+            empty_initialize();
             for (const auto &e : init_lst)
             {
                 push_back(e);
+            }
+        }
+        template <class InputIterator>
+        list(InputIterator first, InputIterator last)
+        {
+            empty_initialize();
+            while (first != last)
+            {
+                push_back(*first);
+                first++;
+            }
+        }
+        ~list()
+        {
+            clear();
+            delete __head;
+            __head = nullptr;
+        }
+        list(const list<T> &lst)
+        {
+            empty_initialize();
+            list<T> tmp(lst.begin(), lst.end());
+            swap(tmp);
+        }
+        void swap(list<T> &x)
+        {
+            std::swap(__head, x.__head); // 交换头节点就可以了
+        }
+        list<T> &operator=(list<T> lst)
+        {
+            // 此时的lst是传参深拷贝过来的
+            swap(lst);
+            return *this;
+        }
+
+    public:
+        void clear()
+        {
+            iterator it = begin();
+            while (it != end())
+            {
+                it = erase(it);
+                // 不用 it++
+                // 因为 erase会直接返回下一个节点的迭代器位置
             }
         }
 
