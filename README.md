@@ -21,4 +21,6 @@
 
 - stl_priority_queue: 模拟实现stl的priority_queue优先队列
 
+- avl_tree: 平衡搜索二叉树实现
+
 (测试云服务器GPGkey)
