@@ -4,8 +4,8 @@
 
 #include <iostream>
 #include <cassert>
-
-
+#include <cmath>
+#include <ctime>
 
 template <class K, class V>
 struct AVLTreeNode
@@ -230,6 +230,10 @@ public:
         __in_order(__root);
         std::cout << std::endl;
     }
+    bool IsBalance()
+    {
+        return __is_balance(__root);
+    }
 
 private:
     void __in_order(Node *root)
@@ -239,6 +243,26 @@ private:
         __in_order(root->__left);
         std::cout << root->__kv.first << ":" << root->__kv.second << std::endl;
         __in_order(root->__right);
+    }
+    int __height(Node *root)
+    {
+        if (root == nullptr)
+            return 0;
+        int left_height = __height(root->__left);
+        int right_height = __height(root->__right);
+        if (right_height - left_height != root->__bf) // 顺便也检查一下平衡因子
+        {
+            std::cerr << root->__kv.first << "平衡因子异常" << std::endl;
+        }
+        return std::max(left_height, right_height) + 1;
+    }
+    bool __is_balance(Node *root)
+    {
+        if (root == nullptr)
+            return true;
+        int left_height = __height(root->__left);
+        int right_height = __height(root->__right);
+        return (abs(left_height - right_height) <= 1) && __is_balance(root->__left) && __is_balance(root->__right);
     }
 };
 
@@ -251,6 +275,29 @@ void test1()
         avl_tree1.Insert(std::make_pair(e, e));
     }
     avl_tree1.InOrder();
+    std::cout << ((avl_tree1.IsBalance() == 1) ? "true" : "false") << std::endl;
 }
-
+void test2()
+{
+    int arr[] = {16, 3, 7, 11, 9, 26, 18, 14, 15};
+    AVL<int, int> t1;
+    for (auto e : arr)
+    {
+        t1.Insert(std::make_pair(e, e));
+    }
+}
+void test3()
+{
+    // 用随机值测一下
+    AVL<int, int> t1;
+    size_t N = 10000;
+    srand(time(0));
+    for (size_t i = 0; i < N; i++)
+    {
+        int x = rand();
+        t1.Insert(std::make_pair(x, i));
+    }
+    t1.InOrder();
+    std::cout << ((t1.IsBalance() == 1) ? "true" : "false") << std::endl;
+}
 #endif
