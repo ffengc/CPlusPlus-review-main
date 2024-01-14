@@ -21,6 +21,8 @@
 
 - stl_priority_queue: 模拟实现stl的priority_queue优先队列
 
-- avl_tree: 平衡搜索二叉树实现（暂未完成）
+- avl_tree: 平衡搜索二叉树实现
 
-- rd_black_tree: 红黑树的实现（暂未完成）
+- rd_black_tree: 红黑树的实现
+
+- stl_set_map: 用红黑树封装这两个容器
