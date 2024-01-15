@@ -52,13 +52,78 @@ struct __rb_tree_iterator
     {
         return __node == s.__node;
     }
-    self &operator++()
+    void __increment()
     {
         // 如果右子树不为空，++就是右子树的最左节点
         // 如果右子树为空，++就是找祖先，找第一个在自己右上方的第一个祖先
+        if (__node->__right)
+        {
+            // 如果右存在，找到右子树的最左节点
+            Node *left = __node->__right;
+            while (left->__left)
+                left = left->__left;
+            __node = left;
+        }
+        else
+        {
+            // 如果右子树为空，++就是找祖先，找第一个在自己右上方的第一个祖先
+            Node *parent = __node->__parent;
+            Node *cur = __node;
+            while (parent && cur == parent->__right)
+            {
+                cur = cur->__parent;
+                parent = parent->__parent;
+            }
+            __node = parent;
+            // 记得处理找到根的情况
+        }
+    }
+    void __decrement()
+    {
+        if (__node->__left)
+        {
+            // 如果左树不为空，就是左树的最右节点
+            Node *right = __node->__left;
+            while (right->__right)
+            {
+                right = right->__right;
+            }
+            __node = right;
+        }
+        else
+        {
+            // 如果左树为空，就找祖先，第一个在左方上的祖先
+            Node *parent = __node->__parent;
+            Node *cur = __node;
+            while (parent && cur == parent->__left)
+            {
+                cur = cur->__parent;
+                parent = parent->__parent;
+            }
+            __node = parent;
+        }
+    }
+    self operator++(int)
+    {
+        self tmp = *this;
+        __increment();
+        return tmp;
+    }
+    self operator--(int)
+    {
+        self tmp = *this;
+        __decrement();
+        return tmp;
+    }
+    self &operator++()
+    {
+        __increment();
+        return *this;
     }
     self &operator--()
     {
+        __decrement();
+        return *this;
     }
 };
 
@@ -145,14 +210,14 @@ private:
     }
 
 public:
-    bool Insert(const value_type &data)
+    std::pair<iterator, bool> Insert(const value_type &data)
     {
         key_of_value kov; // 仿函数
         if (__root == nullptr)
         {
             __root = new Node(data);
             __root->__node_color = BLACK; // 根节点一定是黑的
-            return true;
+            return std::make_pair(iterator(__root), true);
         }
         Node *parent = nullptr;
         Node *cur = __root;
@@ -170,9 +235,10 @@ public:
                 cur = cur->__left;
             }
             else
-                return false;
+                return std::make_pair(iterator(cur), false);
         }
         cur = new Node(data);
+        Node *new_node = cur; // 记录一下新增的节点，方便返回
         cur->__node_color = RED;
         if (kov(parent->__data) < kov(data))
             parent->__right = cur;
@@ -261,7 +327,7 @@ public:
         }
         // 这里要处理，循环结束之后，此时parent是空，也就是cur是根，也就是上一轮的祖父是根
         __root->__node_color = BLACK;
-        return true;
+        return std::make_pair(iterator(new_node), false); // 这里不能直接返回cur，因为变色旋转cur可能变了，所以前面先记录一下
     }
 };
 
