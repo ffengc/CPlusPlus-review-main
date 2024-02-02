@@ -1,0 +1,219 @@
+
+#include <iostream>
+#include <stddef.h>
+#include <vector>
+#include <time.h>
+#include <assert.h>
+#include <chrono>
+#include <random>
+
+#define __DEBUG
+
+#ifdef __DEBUG
+#include <unordered_map>
+#endif
+
+struct __skip_list_node
+{
+public:
+    int __val;
+    std::vector<__skip_list_node *> __next_vector;
+
+public:
+    __skip_list_node(int val, int level)
+        : __val(val), __next_vector(level, nullptr) {}
+};
+
+// 下面是leetcode《1206. 设计跳表》的题目结构
+class Skiplist
+{
+private:
+    typedef __skip_list_node Node;
+    Node *__head;
+    size_t __max_level = 32; // 就按照redis的给吧，给个32，概率给个0.25
+    double __p = 0.25;
+    size_t __size = 0;
+
+private:
+    // 获取随机层数
+    int __random_level()
+    {
+#if false // C语言的写法
+        size_t level = 1;
+        while (rand() < RAND_MAX * __p && level < __max_level)
+            ++level;
+        return level;
+#endif
+        static unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        static std::default_random_engine generator(seed);
+        std::uniform_real_distribution<double> distribution(0.0, 1.0);
+        size_t level = 1;
+        while (distribution(generator) <= __p && level < __max_level)
+            ++level;
+        return level;
+    }
+#ifdef __DEBUG
+private:
+    void __show_list_show_table(const std::vector<std::vector<std::string>> &table)
+    {
+        for (int i = 0; i < table.size(); i++)
+        {
+            assert(table[i].size() == table[0].size());
+            for (int j = 0; j < table[i].size(); j++)
+            {
+                printf("%-3s", table[i][j].c_str());
+            }
+            std::cout << std::endl;
+        }
+    }
+#endif
+public:
+#ifdef __DEBUG
+    // 按照每一行打印
+    void show_list_by_row()
+    {
+        int level = __head->__next_vector.size();
+        for (int i = level - 1; i >= 0; i--)
+        {
+            Node *cur = __head;
+            while (cur)
+            {
+                std::cout << cur->__val << " ";
+                cur = cur->__next_vector[i];
+            }
+            std::cout << std::endl;
+        }
+    }
+    // 按照节点打印
+    void show_list()
+    {
+        Node *cur = __head;
+        // 把数字存到一个二维数组里面，再去打印，就会美观了
+        size_t col = __size;
+        size_t row = __head->__next_vector.size();
+        // 这里的col一定要+1，因为有头节点！
+        std::vector<std::vector<std::string>> table(row, std::vector<std::string>(col + 1, "   "));
+        // 先把最下面这一行处理好
+        int idx = 0;
+        // 记录最下面这一行的时候，一定要同时建立val和idx的映射
+        std::unordered_map<int, int> __hash_map;
+        while (cur)
+        {
+            table[table.size() - 1][idx] = std::to_string(cur->__val);
+            __hash_map[cur->__val] = idx++; // 建立映射
+            cur = cur->__next_vector[0];
+        }
+        // __show_list_show_table(table);
+        // 把剩下的其他行放到对应映射的位置里面去
+        if (row <= 1)
+        {
+            __show_list_show_table(table);
+            return;
+        }
+        for (int i = 1; i < row; i++)
+        {
+            cur = __head;
+            while (cur)
+            {
+                // 现在在遍历第i行的数字
+                table[table.size() - i - 1][__hash_map[cur->__val]] = std::to_string(cur->__val);
+                cur = cur->__next_vector[i];
+            }
+        }
+        __show_list_show_table(table);
+    }
+#endif
+public:
+    size_t size() { return __size; }
+
+private:
+    std::vector<Node *> __find_prev_vector(int num)
+    {
+        Node *cur = __head;
+        int level = __head->__next_vector.size() - 1;
+        std::vector<Node *> prev_vector(level + 1, __head);
+        while (level >= 0)
+        {
+            if (cur->__next_vector[level] && cur->__next_vector[level]->__val < num)
+                cur = cur->__next_vector[level];
+            else if (cur->__next_vector[level] == nullptr || cur->__next_vector[level]->__val >= num)
+            {
+                // 不仅要向下走，还要更新prev_vector
+                prev_vector[level] = cur;
+                --level;
+            }
+        }
+        return prev_vector;
+    }
+
+public:
+    Skiplist()
+    {
+        // srand((unsigned int)time(NULL));
+        __head = new __skip_list_node(-1, 1); /*插入第一个节点的时候，先给一层*/
+    }
+    bool search(int target)
+    {
+        Node *cur = __head;
+        int level = __head->__next_vector.size() - 1; // 这个就是最高层数
+        /* 这个level不要用 size_t 因为有可能减到 -1 去 */
+        while (level >= 0)
+        {
+            // 下一个位置存在 && target比下一个位置要大，继续跳，向右走
+            if (cur->__next_vector[level] && cur->__next_vector[level]->__val < target)
+                cur = cur->__next_vector[level]; // 向右走
+            // 下一个位置不存在 && target比下一个位置要小，不跳了，向下走
+            else if (cur->__next_vector[level] == nullptr || cur->__next_vector[level]->__val > target)
+                --level; // 向下走
+            else
+                return true;
+        }
+        return false;
+    }
+    void add(int num)
+    {
+        __size++; // 计数器++
+        /*
+            关键是：要找到插入位置的每一层的前面的一系列指针
+            但是注意，这一系列指针不一定在同一个vector里面
+            因为层数是不知道的，所以这个prev_vector的高度一定先初始化为最高（当前最高，不是只maxLevel）
+            具体解释可以看看readme，里面有图，我把prev_vector圈起来了
+        */
+        std::vector<Node *> prev_vector = __find_prev_vector(num);
+        int n = __random_level();
+        Node *newnode = new Node(num, n);
+        // 如果 n 比 head 高，head层数不够怎么办
+        if (n > __head->__next_vector.size())
+        {
+            __head->__next_vector.resize(n, nullptr); // 如果n比head高才升高
+            prev_vector.resize(n, __head);
+        }
+        // 连接前后节点
+        for (size_t i = 0; i < n; i++)
+        {
+            newnode->__next_vector[i] = prev_vector[i]->__next_vector[i];
+            prev_vector[i]->__next_vector[i] = newnode;
+        }
+    }
+    bool erase(int num)
+    {
+        // 同样也是找到每一层的前一个
+        // 删掉之后链接起来就可以了，不用考虑别人
+        std::vector<Node *> prev_vector = __find_prev_vector(num);
+        // 看最下面的这一层就行了，如果最下面的prev_vector指向空，说明找到最右边也没找到
+        // 如果最下面这一层的下一个的val不是对应的值，也不对了，说明找不到了
+        // 而且最下面这一层的下一个的val一定是大于num的，如果找不到的话
+        if (prev_vector[0]->__next_vector[0] == nullptr || prev_vector[0]->__next_vector[0]->__val != num)
+            return false;
+        Node *del = prev_vector[0]->__next_vector[0]; // 最下面这一层的下一个
+        for (size_t i = 0; i < del->__next_vector.size(); i++)
+            prev_vector[i]->__next_vector[i] = del->__next_vector[i];
+        // 这样就可以了
+        delete del;
+        // 检查一下是否删除的是最高的节点
+        /* 如果头节点的最高层指向的是空，那么这一层就可以删掉了 */
+        while (__head->__next_vector.size() > 1 && __head->__next_vector[__head->__next_vector.size() - 1] == nullptr)
+            __head->__next_vector.pop_back();
+        return true;
+    }
+};
