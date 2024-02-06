@@ -19,8 +19,13 @@ public:
         int root2 = FindRoot(x2);
         if (root1 == root2) // 如果在一个集合就没必要合并了
             return;
+#if false
         if (root1 > root2)
             std::swap(root1, root2); // 统一让下标小的根去合并大的根，其实这个是没有要求的
+#endif
+        // 稍微优化一下，数据量小的往数据量大的集合合并
+        if (abs(__ufs[root1]) < abs(__ufs[root2]))
+            std::swap(root1, root2);
         __ufs[root1] += __ufs[root2];
         __ufs[root2] = root1;
     }
@@ -29,6 +34,13 @@ public:
         int root = x;
         while (__ufs[root] >= 0)
             root = __ufs[root];
+        // 路径压缩
+        while (__ufs[x] >= 0)
+        {
+            int parent = __ufs[x];
+            __ufs[x] = root;
+            x = parent;
+        }
         return root;
     }
     bool InSet(int x1, int x2) // 判断是否在同一个集合
