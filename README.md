@@ -32,6 +32,10 @@
 
 - skip_list: 跳表实现
 
-- union_find_disjoint_set: 并查集（还未实现完）
+- union_find_disjoint_set: 并查集
 
-- Graph: 图
+- Graph: 图（还未实现完）
+
+- random_lib: C++ `<random>`库学习（还未实现完）
+
+- algorithm_lib: C++ `<algorithm>`库学习（还未实现完）
