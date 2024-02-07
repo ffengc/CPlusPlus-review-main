@@ -13,6 +13,8 @@
 
 其实这些算法，把迭代器的优势发挥了出来，这就是封装、重载的魅力。
 
+我下面所有源代码，在仓库里都能找到，**仓库地址：[CPlusPlus-review-main/tree/master/algorithm_lib](https://github.com/Yufccode/CPlusPlus-review-main/tree/master/algorithm_lib)**
+
 ## 非修改序列操作
 
 ### `all_of`
@@ -1468,14 +1470,507 @@ std::cout << std::binary_search(arr.begin(), arr.end(), 10) << std::endl;
 0
 ```
 
-
-
-
-
 ## 合并
+
+### `merge`
+
+```cpp
+template <class InputIterator1, class InputIterator2, class OutputIterator>
+  OutputIterator merge (InputIterator1 first1, InputIterator1 last1,
+                        InputIterator2 first2, InputIterator2 last2,
+                        OutputIterator result);
+template <class InputIterator1, class InputIterator2,
+          class OutputIterator, class Compare>
+  OutputIterator merge (InputIterator1 first1, InputIterator1 last1,
+                        InputIterator2 first2, InputIterator2 last2,
+                        OutputIterator result, Compare comp);
+```
+
+合并两个有序序列成一个有序序列。
+
+**注意：给的两个序列必须是有序的。**
+
+例子：
+```cpp
+std::vector<int> arr1 = {1, 3, 5, 7};
+std::vector<int> arr2 = {2, 4, 9, 11};
+std::vector<int> res(arr1.size() + arr2.size());
+std::merge(arr1.begin(), arr1.end(), arr2.begin(), arr2.end(), res.begin());
+print(res);
+```
+
+输出：`1 2 3 4 5 7 9 11`
+
+### `inplace_merge`
+
+把两个连续的有序序列merge之后放到原先的位置上
+比如序列`[first,last)`中`[first, middle)`和`[middle last)`分别是有序序列，merge之后放到`[first,last)`中来。
+
+例子：
+```cpp
+// inplace_merge
+std::vector<int> arr1 = {1, 3, 5, 7};
+std::vector<int> arr2 = {2, 4, 9, 11};
+std::vector<int> before_inplace_merge = arr1;
+for (auto it = arr2.begin(); it != arr2.end(); it++)
+    before_inplace_merge.push_back(*it);
+std::cout << "before_inplace_merge: ";
+print(before_inplace_merge);
+std::inplace_merge(before_inplace_merge.begin(), before_inplace_merge.begin() + arr1.size(), before_inplace_merge.end());
+std::cout << "after_inplace_merge: ";
+print(before_inplace_merge);
+```
+输出：
+```
+before_inplace_merge: 1 3 5 7 2 4 9 11 
+after_inplace_merge: 1 2 3 4 5 7 9 11 
+```
+
+### `includes`
+
+```cpp
+template <class InputIterator1, class InputIterator2>
+  bool includes ( InputIterator1 first1, InputIterator1 last1,
+                  InputIterator2 first2, InputIterator2 last2 );
+template <class InputIterator1, class InputIterator2, class Compare>
+  bool includes ( InputIterator1 first1, InputIterator1 last1,
+                  InputIterator2 first2, InputIterator2 last2, Compare comp );
+```
+
+如果第一个序列包含第二个序列所有元素，返回true。
+
+```cpp
+void test3()
+{
+    std::vector<int> sub_arr = {1, 3, 5, 7};
+    std::vector<int> arr = {1, 2, 3, 4, 5, 6, 7};
+    std::cout << std::includes(arr.begin(), arr.end(), sub_arr.begin(), sub_arr.end()) << std::endl;
+}
+```
+
+输出为：`1`
+
+### `set_union`
+
+```cpp
+template <class InputIterator1, class InputIterator2, class OutputIterator>
+  OutputIterator set_union (InputIterator1 first1, InputIterator1 last1,
+                            InputIterator2 first2, InputIterator2 last2,
+                            OutputIterator result);
+template <class InputIterator1, class InputIterator2,
+          class OutputIterator, class Compare>
+  OutputIterator set_union (InputIterator1 first1, InputIterator1 last1,
+                            InputIterator2 first2, InputIterator2 last2,
+                            OutputIterator result, Compare comp);
+```
+
+求两个序列的并集，重复的元素会被去掉
+
+```cpp
+// set_union
+std::vector<int> arr1 = {1, 2, 3, 5, 7, 9, 11, 13};
+std::vector<int> arr2 = {1, 2, 3, 4, 5, 6, 7};
+std::vector<int> res(arr1.size() + arr2.size());
+auto it = std::set_union(arr1.begin(), arr1.end(), arr2.begin(), arr2.end(), res.begin());
+print(res.begin(), it);
+```
+输出：`1 2 3 4 5 6 7 9 11 13`
+
+### `set_intersection`
+
+求交集，用法和`set_union`一样。
+
+```cpp
+// set_intersection
+std::vector<int> arr1 = {1, 2, 3, 5, 7, 9, 11, 13};
+std::vector<int> arr2 = {1, 2, 3, 4, 5, 6, 7};
+std::vector<int> res(std::max(arr1.size(), arr2.size()));
+auto it = std::set_intersection(arr1.begin(), arr1.end(), arr2.begin(), arr2.end(), res.begin());
+print(res.begin(), it);
+```
+输出：`1 2 3 5 7`
+
+### `set_difference`
+
+用法和`set_union`一样。找到序列1中对比序列2没有的元素。
+
+例子：
+```cpp
+void test6()
+{
+    // set_difference
+    std::vector<int> arr1 = {1, 2, 3, 5, 7, 9, 11, 13};
+    std::vector<int> arr2 = {1, 2, 3, 4, 5, 6, 7};
+    std::vector<int> res(std::max(arr1.size(), arr2.size()));
+    auto it = std::set_difference(arr1.begin(), arr1.end(), arr2.begin(), arr2.end(), res.begin());
+    print(res.begin(), it);
+}
+```
+输出：
+```
+9 11 13
+```
+
+### `set_symmetric_difference`
+
+和`set_difference`，`set_symmetric_difference`返回的是`并集-交集`，也就是两个序列中没有重复出现的元素
+
+```cpp
+void test7()
+{
+    // set_symmetric_difference
+    std::vector<int> arr1 = {1, 2, 3, 4};
+    std::vector<int> arr2 = {2, 3, 4, 5};
+    std::vector<int> res(3);
+    auto it = std::set_symmetric_difference(arr1.begin(), arr1.end(), arr2.begin(), arr2.end(), res.begin());
+    print(res.begin(), it); // 1 5
+}
+```
+输出：`1 5`
 
 ## 堆操作
 
+下面的函数默认是大堆。
+
+### `make_heap`
+
+```cpp
+template <class RandomAccessIterator>
+  void make_heap (RandomAccessIterator first, RandomAccessIterator last);
+custom (2)	
+template <class RandomAccessIterator, class Compare>
+  void make_heap (RandomAccessIterator first, RandomAccessIterator last,
+                  Compare comp);
+```
+
+把一个序列排列成一个堆。复杂度是O(n)
+
+例子：
+```cpp
+// make_heap
+std::vector<int> arr = {1, 3, 5, 2, 4, 0, 1, 2};
+std::make_heap(arr.begin(), arr.end());
+print(arr);
+```
+输出：`5 4 1 2 3 0 1 2`
+
+### `push_heap`
+
+```cpp
+template <class RandomAccessIterator>
+  void push_heap (RandomAccessIterator first, RandomAccessIterator last);
+template <class RandomAccessIterator, class Compare>
+  void push_heap (RandomAccessIterator first, RandomAccessIterator last,
+                   Compare comp);
+```
+
+序列的`[first,last-1)`已经是一个堆了，push_heap把`[first,last)`调整成堆。
+
+为什么不用make_heap，make_heap也可以得到相同结果，因为make_heap是O(n)的操作。
+
+push_heap是对最后一个元素做向上调整，swap次数最多为树的高度次，所以是Ologn的操作。
+
+```cpp
+void test2()
+{
+    // push_heap
+    std::vector<int> arr = {1, 3, 5, 2, 4, 0, 1, 2};
+    std::make_heap(arr.begin(), arr.end());
+    print(arr);
+    arr.push_back(10);
+    std::push_heap(arr.begin(), arr.end());
+    print(arr);
+}
+```
+输出：
+```
+5 4 1 2 3 0 1 2 
+10 5 1 4 3 0 1 2 2 
+```
+
+### `pop_heap`
+
+取序列中堆顶的元素，然后把堆顶元素从堆中去除，放到最后一个位置。`[first, last-1)`仍然是堆。
+
+本质是让堆顶和最后一个元素交换，然后再对堆顶进行向下调整，复杂度为Ologn
+
+```cpp
+void test3()
+{
+    // pop_heap
+    std::vector<int> arr = {1, 3, 5, 2, 4, 0, 1, 2};
+    std::make_heap(arr.begin(), arr.end());
+    std::cout << "before pop: ";
+    print(arr);
+    std::pop_heap(arr.begin(), arr.end());
+    std::cout << "after pop, whole list: ";
+    print(arr);
+    std::cout << "after pop, heap: ";
+    arr.pop_back();
+    print(arr);
+}
+```
+
+输出：
+```
+before pop: 5 4 1 2 3 0 1 2 
+after pop, whole list: 4 3 1 2 2 0 1 5 
+after pop, heap: 4 3 1 2 2 0 1 
+```
+
+### `sort_heap`
+
+把一个堆序列排列成升序，本质是堆排序，复杂度是Ologn
+
+```cpp
+void test4()
+{
+    // sort_heap
+    std::vector<int> arr = {1, 3, 5, 2, 4, 0, 1, 2};
+    std::make_heap(arr.begin(), arr.end());
+    print(arr);
+    std::sort_heap(arr.begin(), arr.end());
+    print(arr);
+}
+```
+输出：
+```
+5 4 1 2 3 0 1 2 
+0 1 1 2 2 3 4 5 
+```
+
+### `is_heap`
+
+检查序列是否为堆。
+
+```cpp
+void test5()
+{
+    // is_heap
+    std::vector<int> arr = {1, 3, 5, 2, 4, 0, 1, 2};
+    std::cout << std::is_heap(arr.begin(), arr.end()) << std::endl;
+    std::make_heap(arr.begin(), arr.end());
+    std::cout << std::is_heap(arr.begin(), arr.end()) << std::endl;
+}
+```
+
+输出：
+```
+0
+1
+```
+
+### `is_heap_until`
+
+返回序列中第一个不满足堆序的元素的迭代器。
+
+```cpp
+void test6()
+{
+    // is_heap_until
+    std::vector<int> arr = {1, 3, 5, 2, 4, 0, 1, 2};
+    std::make_heap(arr.begin(), arr.end());
+    arr.push_back(10);
+    print(arr);
+    auto it = std::is_heap_until(arr.begin(), arr.end());
+    print(it, arr.end());
+}
+```
+
+输出：
+```
+5 4 1 2 3 0 1 2 10 
+10 
+```
+
 ## min/max
 
+### `min`和`max`
+
+min的声明。max相同。
+```cpp
+template <class T> const T& min (const T& a, const T& b);
+template <class T, class Compare>
+  const T& min (const T& a, const T& b, Compare comp);
+```
+
+找到两个元素中较大的/较小的。
+
+```cpp
+void test1()
+{
+    int a = 10;
+    int b = 20;
+    std::cout << std::max(a, b) << std::endl;
+    std::cout << std::min(a, b) << std::endl;
+}
+```
+输出：
+```
+20
+10
+```
+
+### `minmax`
+
+```cpp
+	
+template <class T>
+  pair <const T&,const T&> minmax (const T& a, const T& b);
+template <class T, class Compare>
+  pair <const T&,const T&> minmax (const T& a, const T& b, Compare comp);
+initializer list (3)	
+template <class T>
+  pair<T,T> minmax (initializer_list<T> il);
+template <class T, class Compare>
+  pair<T,T> minmax (initializer_list<T> il, Compare comp);
+```
+
+返回两个元素中较小和较大的，或者返回初始化列表中最小和最大的。
+
+```cpp
+void test2()
+{
+    int a = 10;
+    int b = 20;
+    auto p1 = std::minmax(a, b);
+    std::cout << p1.first << " " << p1.second << std::endl;
+    auto p2 = std::minmax({1, 2, 3, 4, 5});
+    std::cout << p2.first << " " << p2.second << std::endl;
+}
+```
+输出：
+```
+10 20
+1 5
+```
+
+### `min_element`和`max_element`
+
+```cpp
+template <class ForwardIterator>
+  ForwardIterator max_element (ForwardIterator first, ForwardIterator last);
+template <class ForwardIterator, class Compare>
+  ForwardIterator max_element (ForwardIterator first, ForwardIterator last,
+                               Compare comp);
+```
+min的也是同样的。
+
+返回迭代器区间中最小的元素/最大元素的迭代器，很好理解直接上例子就行了。
+
+```cpp
+void test3()
+{
+    std::vector<int> arr = {1, 3, 5, 7, 2, 4, 6, 8, -1};
+    std::cout << *std::max_element(arr.begin(), arr.end()) << std::endl;
+    std::cout << *std::min_element(arr.begin(), arr.end()) << std::endl;
+}
+```
+输出：
+```cpp
+8
+-1
+```
+
+### `minmax_element`
+
+```cpp
+template <class ForwardIterator>
+  pair<ForwardIterator,ForwardIterator>
+    minmax_element (ForwardIterator first, ForwardIterator last);
+template <class ForwardIterator, class Compare>
+  pair<ForwardIterator,ForwardIterator>
+    minmax_element (ForwardIterator first, ForwardIterator last, Compare comp);
+```
+
+返回序列中最小和最大的元素，装在pair里面。
+
+```cpp
+void test4()
+{
+    std::vector<int> arr = {1, 3, 5, 7, 2, 4, 6, 8, -1};
+    auto p = std::minmax_element(arr.begin(), arr.end());
+    std::cout << *p.first << " " << *p.second << std::endl;
+}
+```
+输出：`-1 8`
+
+
 ## 其他
+
+### `lexicographical_compare`
+
+```cpp
+template <class InputIterator1, class InputIterator2>
+  bool lexicographical_compare (InputIterator1 first1, InputIterator1 last1,
+                                InputIterator2 first2, InputIterator2 last2);
+template <class InputIterator1, class InputIterator2, class Compare>
+  bool lexicographical_compare (InputIterator1 first1, InputIterator1 last1,
+                                InputIterator2 first2, InputIterator2 last2,
+                                Compare comp);
+```
+
+如果第一个序列的字典序小于第二序列，返回true
+
+```cpp
+void test1()
+{
+    // lexicographical_compare
+    std::vector<int> arr1 = {1, 2, -1, 1, 1, 1, 1};
+    std::vector<int> arr2 = {1, 2, 1};
+    std::cout << std::lexicographical_compare(arr1.begin(), arr1.end(), arr2.begin(), arr2.end()) << std::endl;
+}
+```
+
+输出：`1`
+
+### `next_permutation`
+
+```cpp
+template <class BidirectionalIterator>
+  bool next_permutation (BidirectionalIterator first,
+                         BidirectionalIterator last);
+template <class BidirectionalIterator, class Compare>
+  bool next_permutation (BidirectionalIterator first,
+                         BidirectionalIterator last, Compare comp);
+```
+
+返回序列下一个字典序更大的排列，这个也是很好理解的，直接看例子。
+
+如果有字典序更大的排列，返回true，否则返回false。
+
+```cpp
+void test2()
+{
+    // next_permutation
+    std::vector<int> arr = {1, 2, 3, 4, 5};
+    print(arr);
+    std::cout << std::next_permutation(arr.begin(), arr.end()) << std::endl; // 是否有字典序更大的排列
+    print(arr);
+    std::vector<int> arr2 = {5, 4, 3};
+    std::cout << std::next_permutation(arr2.begin(), arr2.end()) << std::endl; // 是否有字典序更大的排列
+}
+```
+输出：
+```
+1 2 3 4 5 
+1
+1 2 3 5 4 
+0
+```
+
+### `prev_permutation`
+
+返回前一个排列。如果没有前一个排列了，返回false，否则返回true。如果是升序序列求prev_permutation就会返回false
+
+其实就是next_permutation的反向操作
+
+```cpp
+void test3()
+{
+    // prev_permutation
+    std::vector<int> arr = {1, 2, 3, 4, 5};
+    std::cout << std::prev_permutation(arr.begin(), arr.end()) << std::endl;
+}
+```
+输出：`0`
