@@ -1047,11 +1047,323 @@ print(arr2);
 ```
 输出：`1 6 2 4 3 5`
 
-
-
 ## 分区操作
 
+### `is_partitioned`
+
+```cpp
+template <class InputIterator, class UnaryPredicate>
+  bool is_partitioned (InputIterator first, InputIterator last, UnaryPredicate pred);
+```
+
+判断在一个序列中，满足pred的元素是否都在不满足pred的元素的前面。
+
+例子：
+```cpp
+std::vector<int> arr1 = {1, 2, 3, 4, 5};
+std::cout << std::is_partitioned(arr1.begin(), arr1.end(), [](int i)
+                                  { return i <= 3; })
+          << std::endl;
+```
+
+小于等于3的都在前面吗？
+
+输出：`1`
+
+### `partition`
+
+```cpp
+template <class BidirectionalIterator, class UnaryPredicate>
+  BidirectionalIterator partition (BidirectionalIterator first,
+                                   BidirectionalIterator last, UnaryPredicate pred);
+```
+
+把元素分组，满足pred的都放到前面，不满足pred的放到后面，返回第二组（不满足pred）的第一个元素的迭代器。
+
+例子：
+```cpp
+// partition
+std::vector<int> arr2 = {1, 2, 3, 4, 5, 6, 7};
+std::partition(arr2.begin(), arr2.end(), [](int i)
+                { return i % 2 == 0; });
+print(arr2);
+```
+偶数放到前面来。
+输出：`6 2 4 3 5 1 7`
+
+### `stable_partition`
+
+```cpp
+template <class BidirectionalIterator, class UnaryPredicate>
+  BidirectionalIterator stable_partition (BidirectionalIterator first,
+                                          BidirectionalIterator last,
+                                          UnaryPredicate pred);
+```
+
+稳定的分组：就是分组后，组内的元素的顺序和分组前是一样的。
+
+例子：
+
+```cpp
+// stable_partition
+std::vector<int> arr2 = {1, 2, 3, 4, 5, 6, 7};
+std::stable_partition(arr2.begin(), arr2.end(), [](int i)
+                { return i % 2 == 0; });
+print(arr2);
+```
+
+输出：`2 4 6 1 3 5 7`
+
+
+### `partition_copy`
+
+```cpp
+template <class InputIterator, class OutputIterator1,
+          class OutputIterator2, class UnaryPredicate pred>
+  pair<OutputIterator1,OutputIterator2>
+    partition_copy (InputIterator first, InputIterator last,
+                    OutputIterator1 result_true, OutputIterator2 result_false,
+                    UnaryPredicate pred);
+```
+
+满足pred的元素，放到result_true中，不满足pred的元素，放到result_false中
+
+返回的是两个迭代器，第一个指向result_true序列的end位置，另一个指向result_false序列的end位置。
+
+```cpp
+void test2()
+{
+    std::vector<int> arr = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    std::vector<int> odd(arr.size());  // 奇数
+    std::vector<int> even(arr.size()); // 偶数
+    auto p = std::partition_copy(arr.begin(), arr.end(), odd.begin(), even.begin(), [](int i)
+                                 { return i % 2 == 1; });
+    print(odd.begin(), p.first);
+    print(even.begin(), p.second);
+}
+```
+
+输出：
+```
+1 3 5 7 9 
+2 4 6 8 10 
+```
+
+### `partition_point`
+
+```cpp
+template <class ForwardIterator, class UnaryPredicate>
+  ForwardIterator partition_point (ForwardIterator first, ForwardIterator last,
+                                   UnaryPredicate pred);
+```
+
+**找到已经分好区的序列**的分割点。
+
+**找到分好区的序列中**，第一个不满足pred的元素。
+
+前提是这个序列已经分好区了
+
+```cpp
+void test3()
+{
+    // partition_point
+    std::vector<int> arr = {1, 3, 5, 7, 9, 2, 4, 6, 8, 10};
+    auto is_odd = [](int i)
+    { return i % 2 == 1; };
+    if (!std::is_partitioned(arr.begin(), arr.end(), is_odd))
+        assert(false);
+    auto point = std::partition_point(arr.begin(), arr.end(), is_odd);
+    print(arr.begin(), point);
+    print(point, arr.end());
+}
+```
+输出：
+```
+1 3 5 7 9 
+2 4 6 8 10
+```
+
+如果序列不是提前分好区的，调用partition_point就会导致结果错误。所以使用之前可以用is_partitioned线判断一下。
+
 ## 排序
+
+### `sort`
+
+```cpp
+template <class RandomAccessIterator>
+  void sort (RandomAccessIterator first, RandomAccessIterator last);
+template <class RandomAccessIterator, class Compare>
+  void sort (RandomAccessIterator first, RandomAccessIterator last, Compare comp);
+```
+
+给序列进行排序。
+
+没有comp的版本需要重载`operator<`。
+
+例子：
+
+```cpp
+// sort
+std::vector<int> arr = {1, 3, 5, 7, 9, 2, 4, 6, 8, 10};
+std::sort(arr.begin(), arr.end());
+print(arr);
+std::sort(arr.begin(), arr.end(), std::greater<int>());
+print(arr);
+```
+
+输出：
+```
+1 2 3 4 5 6 7 8 9 10 
+10 9 8 7 6 5 4 3 2 1
+```
+
+### `stable_sort`
+
+用法和`sort`一样，但是`stable_sort`是稳定排序。
+
+```cpp
+// sort
+std::vector<int> arr = {1, 3, 5, 7, 9, 2, 4, 6, 8, 10};
+std::stable_sort(arr.begin(), arr.end());
+print(arr);
+std::stable_sort(arr.begin(), arr.end(), std::greater<int>());
+print(arr);
+```
+
+输出：
+```
+1 2 3 4 5 6 7 8 9 10 
+10 9 8 7 6 5 4 3 2 1
+```
+
+### `partial_sort`
+
+```cpp
+template <class RandomAccessIterator>
+  void partial_sort (RandomAccessIterator first, RandomAccessIterator middle,
+                     RandomAccessIterator last);
+template <class RandomAccessIterator, class Compare>
+  void partial_sort (RandomAccessIterator first, RandomAccessIterator middle,
+                     RandomAccessIterator last, Compare comp);
+```
+
+重新排列序列，排完之后，在middle之前的，按照comp的顺序排列好，middle之后的，顺序未知。
+
+例子：
+```cpp
+std::vector<int> arr = {1, 3, 5, 7, 9, 2, 4, 6, 8, 10};
+std::partial_sort(arr.begin(), arr.begin() + 4, arr.end());
+print(arr);
+```
+
+输出：
+```
+1 2 3 4 9 7 5 6 8 10
+```
+
+### `partial_sort_copy`
+
+```cpp
+template <class InputIterator, class RandomAccessIterator>
+  RandomAccessIterator
+    partial_sort_copy (InputIterator first,InputIterator last,
+                       RandomAccessIterator result_first,
+                       RandomAccessIterator result_last);
+template <class InputIterator, class RandomAccessIterator, class Compare>
+  RandomAccessIterator
+    partial_sort_copy (InputIterator first,InputIterator last,
+                       RandomAccessIterator result_first,
+                       RandomAccessIterator result_last, Compare comp);
+```
+
+把排好序的东西放到result数组里面去，但是放多少个，取决于result_first到result_last有多少个位置，从小开始放（默认）
+
+例子：
+```cpp
+void test4()
+{
+    // partial_sort_copy
+    std::vector<int> arr = {1, 3, 5, 7, 9, 2, 4, 6, 8, 10};
+    std::vector<int> res(3);
+    std::partial_sort_copy(arr.begin(), arr.end(), res.begin(), res.end(), std::greater<int>());
+    print(res); // 10 9 8
+}
+```
+输出：`10 9 8`
+
+### `is_sorted`
+
+```cpp
+template <class ForwardIterator>
+  bool is_sorted (ForwardIterator first, ForwardIterator last);
+template <class ForwardIterator, class Compare>
+  bool is_sorted (ForwardIterator first, ForwardIterator last, Compare comp);
+```
+
+判断序列是否排好序了
+
+例子：
+```cpp
+std::vector<int> arr1 = {1, 3, 5, 7, 9, 2, 4, 6, 8, 10};
+std::vector<int> arr2 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+std::cout << std::is_sorted(arr1.begin(), arr1.end()) << std::endl; // 0
+std::cout << std::is_sorted(arr2.begin(), arr2.end()) << std::endl; // 1
+```
+输出是0和1。
+
+### `is_sorted_until`
+
+```cpp
+template <class ForwardIterator>
+  ForwardIterator is_sorted_until (ForwardIterator first, ForwardIterator last);
+template <class ForwardIterator, class Compare>
+  ForwardIterator is_sorted_until (ForwardIterator first, ForwardIterator last,
+                                   Compare comp);
+```
+
+找到第一个乱序的元素的位置，第一个没有按照顺序的元素的位置。
+
+例子：
+```cpp
+void test6()
+{
+    // is_sorted_until
+    std::vector<int> arr1 = {1, 2, 3, 4, 5, -1, -2, 0};
+    auto it = std::is_sorted_until(arr1.begin(), arr1.end());
+    print(arr1.begin(), it);
+    print(it, arr1.end());
+}
+```
+输出：
+```
+1 2 3 4 5 
+-1 -2 0 
+```
+
+### `nth_element`
+
+```cpp
+template <class RandomAccessIterator>
+  void nth_element (RandomAccessIterator first, RandomAccessIterator nth,
+                    RandomAccessIterator last);
+template <class RandomAccessIterator, class Compare>
+  void nth_element (RandomAccessIterator first, RandomAccessIterator nth,
+                    RandomAccessIterator last, Compare comp);
+```
+
+重排序列，让重排后的第nth个元素就是有序序列中第nth个位置应该为的元素。
+
+放一个例子大家就能懂了。
+
+```cpp
+// nth_element
+std::vector<int> arr1 = {1, 2, 3, 4, 5, -1, -2, 0};
+std::nth_element(arr1.begin(), arr1.end() - 1, arr1.end()); // 排列之后最后一个元素一定是5
+print(arr1);
+```
+输出：`2 1 0 -2 -1 3 4 5`
+
+
 
 ## 二分查找
 
