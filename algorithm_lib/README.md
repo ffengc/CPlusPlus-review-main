@@ -527,6 +527,526 @@ print(arr4); // 0 1 2 3
 
 输出为：`0 1 2 3`
 
+### `move`
+
+```cpp
+template <class InputIterator, class OutputIterator>
+  OutputIterator move (InputIterator first, InputIterator last, OutputIterator result);
+```
+
+从一个迭代器区间移动到另一个迭代器区间上。
+
+```cpp
+void test2()
+{
+    std::vector<int> arr1 = {1, 2, 3, 4, 5};
+    std::vector<int> arr2(arr1.size(), 0);
+    std::move(arr1.begin(), arr1.end(), arr2.begin());
+    print(arr1); // BUG
+    print(arr2);
+}
+```
+输出：
+```
+1 2 3 4 5 
+1 2 3 4 5
+```
+
+移动完之后，被移动后的空间就是剩下的**不确定的合法态**。
+
+### `move_backward`
+
+这个和上面是一样的，和`copy_backward`是一个道理。
+
+```cpp
+// move_backward
+std::vector<int> arr3(arr1.size() + 1, 0);
+std::move_backward(arr1.begin(), arr1.end(), arr3.end());
+print(arr1);
+print(arr3);
+```
+输出：
+```
+1 2 3 4 5 
+0 1 2 3 4 5 
+```
+
+### `swap`
+
+交换两个元素。
+
+```cpp
+template <class T> void swap (T& a, T& b);
+```
+
+例子：
+```cpp
+// swap
+int a = 10;
+int b = 20;
+std::cout << "a: " << a << ", b: " << b << std::endl;
+std::swap(a, b);
+std::cout << "a: " << a << ", b: " << b << std::endl;
+```
+
+输出：
+```
+a: 10, b: 20
+a: 20, b: 10
+```
+
+### `swap_ranges`
+
+交换两个迭代器区间的元素。
+
+```cpp
+template <class ForwardIterator1, class ForwardIterator2>
+  ForwardIterator2 swap_ranges (ForwardIterator1 first1, ForwardIterator1 last1,
+                                ForwardIterator2 first2);
+```
+
+例子：
+```cpp
+// swap_ranges
+std::vector<int> s1 = {1, 2, 3, 4, 5};
+std::vector<int> s2 = {10, 20, 30, 40, 50};
+std::swap_ranges(s1.begin(), s1.end(), s2.begin());
+print(s1);
+print(s2);
+```
+输出：
+```
+10 20 30 40 50 
+1 2 3 4 5 
+```
+
+### `iter_swap`
+
+```cpp
+template <class ForwardIterator1, class ForwardIterator2>
+  void iter_swap (ForwardIterator1 a, ForwardIterator2 b);
+```
+
+交换两个迭代器指向的元素，这个也是很好理解的。
+
+```cpp
+// iter_swap
+std::vector<int> s3 = {1, 2, 3};
+std::vector<int> s4 = {3, 2, 1};
+std::iter_swap(s3.begin(), s4.begin());
+print(s3);
+print(s4);
+```
+
+输出：
+```
+3 2 3 
+1 2 1 
+```
+
+### ``
+
+```cpp
+template <class InputIterator, class OutputIterator, class UnaryOperation>
+  OutputIterator transform (InputIterator first1, InputIterator last1,
+                            OutputIterator result, UnaryOperation op);
+template <class InputIterator1, class InputIterator2,
+          class OutputIterator, class BinaryOperation>
+  OutputIterator transform (InputIterator1 first1, InputIterator1 last1,
+                            InputIterator2 first2, OutputIterator result,
+                            BinaryOperation binary_op);
+```
+
+这个函数有两种形式：
+- 第一种就是让`[first1, last1)`的元素去进行op操作，然后存到result开始的位置上
+- 第二种就是让`[first1, last1)`和first2开始的两个序列，同时进行个binary_op操作，然后结果存到result里面去
+
+看例子就能明白了。
+
+第一个例子就是让序列里面的元素都++一下，然后存到结果序列中。
+第二个例子就是让两个序列的元素相加，然后存到结果序列中。
+
+```cpp
+void test4()
+{
+    // transform
+    std::vector<int> arr1 = {1, 2, 3, 4, 5};
+    std::vector<int> arr2(arr1.size(), 0);
+    std::transform(arr1.begin(), arr1.end(), arr2.begin(), add());
+    print(arr2);                            // 2,3,4,5,6
+    std::vector<int> arr3(arr1.size(), 10); // 10,10,10,10,10
+    std::vector<int> arr4(arr1.size(), 0);
+    std::transform(arr1.begin(), arr1.end(), arr3.begin(), arr4.begin(), std::plus<int>());
+    print(arr4); // 11,12,13,14,15
+}
+```
+
+输出为：
+
+```
+2 3 4 5 6 
+11 12 13 14 15 
+```
+
+### `replace`
+
+```cpp
+template <class ForwardIterator, class T>
+  void replace (ForwardIterator first, ForwardIterator last,
+                const T& old_value, const T& new_value);
+```
+
+把序列里面所有的old_value替换成new_value
+
+```cpp
+// replace
+std::vector<int> arr1 = {1, 2, 2, 2, 3, 3, 3, 4, 5};
+std::replace(arr1.begin(), arr1.end(), 2, 10);
+print(arr1);
+```
+
+输出为：`1 10 10 10 3 3 3 4 5`
+
+### `replace_if`
+
+```cpp
+template <class ForwardIterator, class UnaryPredicate, class T>
+  void replace_if (ForwardIterator first, ForwardIterator last,
+                   UnaryPredicate pred, const T& new_value );
+```
+
+把符合条件的换成new_value。也是很好理解的。
+
+```cpp
+// replace_if
+std::vector<int> arr2 = {-1, -1, -2, -4, 0, 2, 3};
+std::replace_if(
+    arr2.begin(), arr2.end(), [](int i)
+    { return i < 0; },
+    100);
+print(arr2); // 把 <0 的换成 100
+```
+
+输出为：`100 100 100 100 0 2 3 `
+
+
+### `replace_copy`
+
+这个和`replace`其实是一样的，只不过是这个替换完是存到别的地方上去而已。
+
+例子：
+```cpp
+// replace_copy
+std::vector<int> arr3 = {1, 2, 2, 2, 3, 3, 3, 4, 5};
+std::vector<int> res(arr3.size(), 0);
+std::replace_copy(arr3.begin(), arr3.end(), res.begin(), 2, 10);
+print(res);
+```
+
+输出：`1 10 10 10 3 3 3 4 5`
+
+### `replace_copy_if`
+
+这个和`replace_if`其实是一样的，就是结果输出到别的地方而已
+
+```cpp
+// replace_copy_if
+std::vector<int> arr4 = {-1, -1, -2, -4, 0, 2, 3};
+std::vector<int> res2(arr4.size(), 0);
+std::replace_copy_if(
+    arr4.begin(), arr4.end(), res2.begin(), [](int i)
+    { return i < 0; },
+    100);
+print(res2);
+```
+
+输出：`100 100 100 100 0 2 3 `
+
+### `fill`
+
+```cpp
+template <class ForwardIterator, class T>
+  void fill (ForwardIterator first, ForwardIterator last, const T& val);
+```
+
+用val去填充迭代器区间。
+
+```cpp
+std::vector<int> arr1(5, 0);
+std::fill(arr1.begin(), arr1.end(), 10);
+print(arr1);
+```
+
+输出：`10 10 10 10 10`
+
+### `fill_n`
+
+用n个val去填充迭代器区间，传一个begin位置就行。
+
+例子：
+
+```cpp
+// fill_n
+std::vector<int> arr2(5, 0);
+std::fill_n(arr2.begin(), 4, 1); // 用4个1去填充
+print(arr2);
+```
+
+输出：`1 1 1 1 0`
+
+### `generate`
+
+传入一个迭代器区间+生成器，生成一个序列。
+
+看例子就能明白了：
+
+```cpp
+struct generator
+{
+    int number = 0;
+    int operator()() { return ++number; }
+};
+void test7()
+{
+    // generate
+    std::vector<int> arr1(5);
+    std::generate(arr1.begin(), arr1.end(), generator());
+    print(arr1);
+}
+```
+
+输出：`1 2 3 4 5`
+
+### `remove`
+
+```cpp
+template <class ForwardIterator, class T>
+  ForwardIterator remove (ForwardIterator first, ForwardIterator last, const T& val);
+```
+
+删除迭代器区间的val
+
+例子：
+
+```cpp
+std::vector<int> arr1 = {1, 2, 2, 3, 2, 2, 5, 6, 2, 2, 5, 2, 7, 8, 2, 2, 2};
+std::cout << "before calling remove, size: " << arr1.size() << std::endl;
+auto new_end = std::remove(arr1.begin(), arr1.end(), 2);
+std::cout << "after calling remove, size: " << arr1.size() << std::endl;
+print(arr1.begin(), new_end);
+```
+
+注意：这里是把后面的数字往前挪动，因此返回来的新的结束位置的迭代器很重要。
+
+remove调用完之后vector大小还是不变的。
+
+输出：
+```
+before calling remove, size: 17
+after calling remove, size: 17
+1 3 5 6 5 7 8 
+```
+
+### `remove_if`
+
+把符合条件的进行删除。
+
+例子：
+```cpp
+// remove_if
+std::vector<int> arr2 = {1, 2, 2, 3, 2, 2, 5, 6, 2, 2, 5, 2, 7, 8, 2, 2, 2};
+auto new_end2 = std::remove_if(arr2.begin(), arr2.end(), [](int i)
+                                { return i == 2; });
+print(arr2.begin(), new_end2);
+```
+
+输出：`1 3 5 6 5 7 8 `
+
+### `remove_copy`
+
+和`remove`同样，只是结果存到别的地方去而已。
+
+```cpp
+// remove_copy
+std::vector<int> arr1 = {1, 2, 2, 3, 2, 2, 5, 6, 2, 2, 5, 2, 7, 8, 2, 2, 2};
+std::vector<int> arr2(arr1.size());
+auto new_end = std::remove_copy(arr1.begin(), arr1.end(), arr2.begin(), 2);
+print(arr2);
+print(arr2.begin(), new_end);
+```
+
+输出：
+```
+1 3 5 6 5 7 8 0 0 0 0 0 0 0 0 0 0 
+1 3 5 6 5 7 8 
+```
+
+### `remove_copy_if`
+
+和`remove_if`同样，只是结果存到别的地方去而已。
+
+```cpp
+// remove_copy_if
+std::vector<int> arr3 = {1, 2, 2, 3, 2, 2, 5, 6, 2, 2, 5, 2, 7, 8, 2, 2, 2};
+std::vector<int> arr4(arr3.size());
+auto new_end2 = std::remove_copy_if(arr3.begin(), arr3.end(), arr4.begin(), [](int i)
+                                { return i == 2; });
+print(arr4.begin(), new_end2);
+```
+
+输出：`1 3 5 6 5 7 8 `
+
+### `unique`
+
+```cpp
+template <class ForwardIterator>
+  ForwardIterator unique (ForwardIterator first, ForwardIterator last);
+template <class ForwardIterator, class BinaryPredicate>
+  ForwardIterator unique (ForwardIterator first, ForwardIterator last,
+                          BinaryPredicate pred);
+```
+
+删除序列中**连续**重复的元素，只留下第一个。
+
+```cpp
+std::vector<int> arr1 = {1, 2, 2, 3, 3, 4, 3, 2, 5, 5, 8, 5, 9, 10, 2, 10};
+std::unique(arr1.begin(), arr1.end());
+print(arr1);
+```
+输出：`1 2 3 4 3 2 5 8 5 9 10 2 10 10 2 10`
+
+### `unique_copy`
+
+和`unique`其实是一样的，就是把结果放到别的地方去就行了。
+
+```cpp
+// unique_copy
+std::vector<int> arr2 = {1, 2, 2, 2, 3, 3, 4, 5, 6, 6, 7, 8, 9, 9, 9, 9, 10, 10};
+std::vector<int> res(arr2.size());
+auto it = std::unique_copy(arr2.begin(), arr2.end(), res.begin());
+print(res);
+print(res.begin(), it); // 函数返回的迭代器也要注意一下
+```
+
+输出：
+```
+1 2 3 4 5 6 7 8 9 10 0 0 0 0 0 0 0 0 
+1 2 3 4 5 6 7 8 9 10
+```
+
+### `reverse`
+
+翻转一个迭代器区间序列的顺序。
+
+```cpp
+template <class BidirectionalIterator>
+  void reverse (BidirectionalIterator first, BidirectionalIterator last);
+```
+
+例子：
+```cpp
+std::vector<int> arr1 = {1, 2, 3, 4};
+std::reverse(arr1.begin(), arr1.end());
+print(arr1);
+```
+输出：`4 3 2 1`
+
+### `reverse_copy`
+
+和`reverse`的区别就是输出到别的地方去。
+
+```cpp
+// reverse_copy
+std::vector<int> arr2 = {1, 2, 3, 4};
+std::vector<int> res(arr2.size());
+std::reverse_copy(arr2.begin(), arr2.end(), res.begin());
+print(res);
+```
+
+输出：`4 3 2 1`
+
+### `rotate`
+
+```cpp
+template <class ForwardIterator>
+  void rotate (ForwardIterator first, ForwardIterator middle,
+               ForwardIterator last);
+```
+
+旋转一个序列，直到middle是第一个元素
+
+```cpp
+// rotate
+std::vector<int> arr1 = {1, 2, 3, 4, 5, 6};
+std::rotate(arr1.begin(), arr1.begin() + 3, arr1.end()); // 让4作第一个元素
+print(arr1);
+```
+
+输出：`4 5 6 1 2 3`
+
+### `rotate_copy`
+
+和`rotate`的区别就是输出到别的地方去。
+
+```cpp
+// rotate_copy
+std::vector<int> arr2 = {1, 2, 3, 4, 5, 6};
+std::vector<int> res(arr2.size());
+std::rotate_copy(arr2.begin(), arr2.begin() + 3, arr2.end(), res.begin()); // 让4作第一个元素
+print(res);
+```
+
+输出：`4 5 6 1 2 3`
+
+### `random_shuffle`
+
+```cpp
+template <class RandomAccessIterator>
+  void random_shuffle (RandomAccessIterator first, RandomAccessIterator last);
+template <class RandomAccessIterator, class RandomNumberGenerator>
+  void random_shuffle (RandomAccessIterator first, RandomAccessIterator last,
+                       RandomNumberGenerator& gen);
+```
+
+随机打乱一个序列。
+
+如果给了第三个参数gen，那就是按照gen作为种子来打乱，如果不给gen，就是随机打乱。
+
+gen是一个函数对象，返回一个数字。
+
+gen可以这样设计：
+```cpp
+int myrandom (int i) { return std::rand() % i;}
+```
+
+例子：
+```cpp
+// random_shuffle
+std::vector<int> arr1 = {1, 2, 3, 4, 5, 6};
+std::random_shuffle(arr1.begin(), arr1.end());
+print(arr1);
+```
+输出：`5 4 2 3 1 6`
+
+### `shuffle`
+
+```cpp
+template <class RandomAccessIterator, class URNG>
+  void shuffle (RandomAccessIterator first, RandomAccessIterator last, URNG&& g);
+```
+也是打乱。
+但是g要传一个C++的`uniform random number generator`
+
+例子：
+```cpp
+// shuffle
+std::vector<int> arr2 = {1, 2, 3, 4, 5, 6};
+unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+std::shuffle(arr2.begin(), arr2.end(), std::default_random_engine(seed));
+print(arr2);
+```
+输出：`1 6 2 4 3 5`
+
 
 
 ## 分区操作
