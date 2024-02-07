@@ -1364,8 +1364,113 @@ print(arr1);
 输出：`2 1 0 -2 -1 3 4 5`
 
 
-
 ## 二分查找
+
+**这一部分都要要求给的序列都是有序的！基于有序进行二分查找，效率为Ologn**
+
+### `lower_bound`
+
+```cpp
+template <class ForwardIterator, class T>
+  ForwardIterator lower_bound (ForwardIterator first, ForwardIterator last,
+                               const T& val);
+template <class ForwardIterator, class T, class Compare>
+  ForwardIterator lower_bound (ForwardIterator first, ForwardIterator last,
+                               const T& val, Compare comp);
+```
+
+在有序序列中找到第一个不小于val的值，返回它的迭代器。
+
+```cpp
+void test1()
+{
+    std::vector<int> arr = {1, 2, 3, 4, 5, 6};
+    if (!std::is_sorted(arr.begin(), arr.end()))
+        assert(false);
+    auto it = std::lower_bound(arr.begin(), arr.end(), 3);
+    print(it, arr.end());
+}
+```
+
+输出：`3 4 5 6 `
+
+### `upper_bound`
+
+找到第一个比val大大值，返回它的迭代器。
+
+```cpp
+// lower_bound 和 upper_bound
+std::vector<int> arr = {1, 2, 3, 4, 5, 6};
+if (!std::is_sorted(arr.begin(), arr.end()))
+    assert(false);
+auto it = std::lower_bound(arr.begin(), arr.end(), 3);
+print(it, arr.end());
+auto it2 = std::upper_bound(arr.begin(), arr.end(), 3);
+print(it2, arr.end());
+```
+
+输出：
+```
+3 4 5 6 
+4 5 6 
+```
+这样lower_bound 和 upper_bound的区别就很明显了。
+
+### `equal_range`
+
+```cpp
+template <class ForwardIterator, class T>
+  pair<ForwardIterator,ForwardIterator>
+    equal_range (ForwardIterator first, ForwardIterator last, const T& val);
+template <class ForwardIterator, class T, class Compare>
+  pair<ForwardIterator,ForwardIterator>
+    equal_range (ForwardIterator first, ForwardIterator last, const T& val,
+                  Compare comp);
+```
+
+找到可以包含序列中所有等于val的区间，返回迭代器区间，用pair装起来
+
+```cpp
+void test2()
+{
+    // equal_range
+    std::vector<int> arr = {1, 2, 3, 3, 3, 4, 5, 6};
+    auto p = std::equal_range(arr.begin(), arr.end(), 3); // 找到3的区间
+    // 因为序列是有序的，所以同样的数字肯定都放在一起
+    print(p.first, p.second);
+}
+```
+
+输出：`3 3 3`
+
+### `binary_search`
+
+```cpp
+template <class ForwardIterator, class T>
+  bool binary_search (ForwardIterator first, ForwardIterator last,
+                      const T& val);
+template <class ForwardIterator, class T, class Compare>
+  bool binary_search (ForwardIterator first, ForwardIterator last,
+                      const T& val, Compare comp);
+```
+
+二分查找看看序列中是否有val。
+
+```cpp
+std::vector<int> arr = {1, 2, 3, 3, 3, 4, 5, 6};
+std::cout << std::binary_search(arr.begin(), arr.end(), 4) << std::endl;
+std::cout << std::binary_search(arr.begin(), arr.end(), 10) << std::endl;
+```
+
+输出：
+```
+1
+0
+```
+
+
+
+
 
 ## 合并
 
