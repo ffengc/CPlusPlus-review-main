@@ -2,7 +2,7 @@
 
 ## 参考网站
 
-- **[cplusplus.com](https://legacy.cplusplus.com/reference/random/)**
+- **[cplusplus.com](https://legacy.cplusplus.com/reference/algorithm/)**
 
 我针对这个文档链接里面的顺序进行了这个库的功能学习，并自己进行了一些demo的编写，都总结在下面了。
 
