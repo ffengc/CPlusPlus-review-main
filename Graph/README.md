@@ -26,7 +26,7 @@
 
 邻接矩阵不适合用来查找，一个顶点连接的所有边，这个是O(n)的。
 
-邻接表的表示：
+邻接矩阵的表示：
 
 ```cpp
 namespace yufc_graph_matrix
@@ -208,7 +208,6 @@ namespace yufc_graph_link_table
 }
 ```
 
-**#BUG: 0206发现潜在问题：如果一直给无向图add_edge，重复的边权值矛盾了怎么处理，要记得处理一下**
 
 ### 图的一些相关概念
 
@@ -231,3 +230,119 @@ namespace yufc_graph_link_table
 强连通图：在有向图中，若在每一对顶点vi和vj之间都存在一条从vi到vj的路径，也存在一条从vj到vi的路径，则称此图是强连通图。
 
 生成树：一个连通图的最小连通子图称作该图的生成树。有n个顶点的连通图的生成树有n个顶点和n-1条边。
+
+
+**#BUG: 0206发现潜在问题：如果一直给无向图add_edge，重复的边权值矛盾了怎么处理，要记得处理一下（还未处理）**
+
+## 图的遍历
+
+两种遍历针对的都是图的顶点。
+
+### bfs
+
+广度优先遍历，然后我们都用这个图。
+
+![](./assets/2.png)
+
+第一次先把A入队列。
+
+此时队列为：`A`
+
+然后A出来，把和A相连的带进来（BCD）。
+
+此时队列为：`B C D`
+
+此时B出来，把和B相连的带进来，和B相连的有E，C，A。不用说，E肯定是要进来的，AC进不进队列呢？
+
+A不要进了，C可以进，因为此时C还没有被访问过。这时候虽然队列里面有两个C，但是也没问题，到时候的访问过的节点，不要再去访问就行了。
+
+然后怎么标记呢，可以用一个set去记录一下下标（元素可能是其他类型，不好搞，所以就记录下标就行了）
+
+**当然可以不这样标记也可以，我们可以把进队列的标记一下，这样效率高一点**
+
+代码如下所示：
+```cpp
+void bfs(const vertex_type &src)
+{
+    // 需要给一个起点
+    size_t srci = get_vertex_index(src); // 找到起点的下标
+    std::queue<int> q;
+    std::vector<bool> visited(__vertexs.size(), false); // 所有顶点一开始先标记成false
+    q.push(srci);                                       // 起点入队列
+    visited[srci] = true;                               // 标记起点，因为起点已经入队列了
+    while (!q.empty())
+    {
+        // 队列不为空就继续遍历
+        int front = q.front();                                             // 队头的数据
+        std::cout << __vertexs[front] << "[" << front << "]" << " "; // 访问这个值
+        q.pop();
+        // 把和front相连的顶点入队
+        for (size_t i = 0; i < __vertexs.size(); ++i)
+        {
+            if (__matrix[front][i] != __max_weight && visited[i] == false)
+            {
+                q.push(i);         // 和当前顶点相连的节点
+                visited[i] = true; // 入队列的，标记一下
+            }
+        }
+    }
+    std::cout << std::endl << "bfs done!" << std::endl;
+}
+```
+输出：
+```
+A[0] B[1] C[2] D[3] E[4] F[5] G[6] H[7] I[8] 
+bfs done!
+```
+这个也符合我们的预期。
+
+同时，我们也可以给这个bfs进行改进，因为做力扣的时候是有一个二叉树的层序遍历的题目的，如果我想知道每一层分别是什么，我们在代码中也可以控制，下面是改进后的版本。
+
+
+```cpp
+// 遍历
+void bfs(const vertex_type &src)
+{
+    // 需要给一个起点
+    size_t srci = get_vertex_index(src); // 找到起点的下标
+    std::queue<int> q;
+    std::vector<bool> visited(__vertexs.size(), false); // 所有顶点一开始先标记成false
+    q.push(srci);                                       // 起点入队列
+    visited[srci] = true;                               // 标记起点，因为起点已经入队列了
+    int levelSize = 1;
+    while (!q.empty())
+    {
+        // 控制一次出一层
+        for (size_t i = 0; i < levelSize; i++)
+        {
+            // 队列不为空就继续遍历
+            int front = q.front(); // 队头的数据
+            std::cout << __vertexs[front] << "[" << front << "]"
+                        << " "; // 访问这个值
+            q.pop();
+            // 把和front相连的顶点入队
+            for (size_t i = 0; i < __vertexs.size(); ++i)
+            {
+                if (__matrix[front][i] != __max_weight && visited[i] == false)
+                {
+                    q.push(i);         // 和当前顶点相连的节点
+                    visited[i] = true; // 入队列的，标记一下
+                }
+            }
+        }
+        std::cout << std::endl; // 出完每一层才去换行
+        levelSize = q.size();   // 此时levelSize就是下一层个数，就是现在队列的元素个数，因为我们已经把当前层出完了，剩下的都是下一层的
+    }
+    std::cout << "bfs done!" << std::endl;
+}
+```
+输出：
+```
+A[0] 
+B[1] C[2] D[3] 
+E[4] F[5] 
+G[6] H[7] 
+I[8] 
+bfs done!
+```
+这样的结果也是符合预期的。

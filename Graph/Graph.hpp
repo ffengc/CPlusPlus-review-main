@@ -6,6 +6,7 @@
 #include <map>
 #include <limits.h>
 #include <iostream>
+#include <queue>
 
 namespace yufc_graph_matrix
 {
@@ -58,6 +59,43 @@ namespace yufc_graph_matrix
             // 如果是无向图
             if (direction == false)
                 __matrix[desti][srci] = weight;
+        }
+
+    public:
+        // 遍历
+        void bfs(const vertex_type &src)
+        {
+            // 需要给一个起点
+            size_t srci = get_vertex_index(src); // 找到起点的下标
+            std::queue<int> q;
+            std::vector<bool> visited(__vertexs.size(), false); // 所有顶点一开始先标记成false
+            q.push(srci);                                       // 起点入队列
+            visited[srci] = true;                               // 标记起点，因为起点已经入队列了
+            int levelSize = 1;
+            while (!q.empty())
+            {
+                // 控制一次出一层
+                for (size_t i = 0; i < levelSize; i++)
+                {
+                    // 队列不为空就继续遍历
+                    int front = q.front(); // 队头的数据
+                    std::cout << __vertexs[front] << "[" << front << "]"
+                              << " "; // 访问这个值
+                    q.pop();
+                    // 把和front相连的顶点入队
+                    for (size_t i = 0; i < __vertexs.size(); ++i)
+                    {
+                        if (__matrix[front][i] != __max_weight && visited[i] == false)
+                        {
+                            q.push(i);         // 和当前顶点相连的节点
+                            visited[i] = true; // 入队列的，标记一下
+                        }
+                    }
+                }
+                std::cout << std::endl; // 出完每一层才去换行
+                levelSize = q.size();   // 此时levelSize就是下一层个数，就是现在队列的元素个数，因为我们已经把当前层出完了，剩下的都是下一层的
+            }
+            std::cout << "bfs done!" << std::endl;
         }
 
     public:
@@ -150,7 +188,13 @@ namespace yufc_graph_link_table
         }
 
     public:
-        void print()
+        // 遍历
+        void bfs(const vertex_type &src)
+        {
+        }
+
+    public:
+        void print(bool is_print_direction = false) // 默认不打印权值
         {
             // 把顶点打印出来
             for (size_t i = 0; i < __vertexs.size(); i++)
@@ -164,7 +208,10 @@ namespace yufc_graph_link_table
                 Edge *cur = __table[i]; // 遍历一下单链表而已
                 while (cur)
                 {
-                    std::cout << cur->__weight << "->" << __vertexs[cur->__dest_idx] << "[" << cur->__dest_idx << "]->";
+                    if (is_print_direction == true)
+                        std::cout << cur->__weight << "->" << __vertexs[cur->__dest_idx] << "[" << cur->__dest_idx << "]->";
+                    else
+                        std::cout << __vertexs[cur->__dest_idx] << "[" << cur->__dest_idx << "]->";
                     cur = cur->__next;
                 }
                 std::cout << "nullptr" << std::endl;
