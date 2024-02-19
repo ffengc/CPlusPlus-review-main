@@ -49,7 +49,7 @@ void make_graph(graph_type &g)
 }
 void test3()
 {
-    // 测试遍历
+    // 测试bfs
     yufc_graph_matrix::graph<char, int, false> g("ABCDEFGHI", 9); // 无向图
     make_graph(g);
     g.print();
@@ -57,8 +57,18 @@ void test3()
     g.bfs('A');
 }
 
+void test4()
+{
+    // 测试dfs
+    yufc_graph_matrix::graph<char, int, false> g("ABCDEFGHI", 9); // 无向图
+    make_graph(g);
+    g.print();
+    std::cout << std::endl;
+    g.dfs('A');
+}
+
 int main()
 {
-    test3();
+    test4();
     return 0;
 }

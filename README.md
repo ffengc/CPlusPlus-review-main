@@ -38,4 +38,6 @@
 
 - random_lib: C++ `<random>`库学习（还未实现完）
 
-- algorithm_lib: C++ `<algorithm>`库学习（完成）
+- algorithm_lib: C++ `<algorithm>`库学习
+
+- numeric_lib: C++ `numeric`库学习

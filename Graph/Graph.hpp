@@ -61,6 +61,17 @@ namespace yufc_graph_matrix
                 __matrix[desti][srci] = weight;
         }
 
+    private:
+        void __dfs(size_t srci, std::vector<bool> &visited)
+        {
+            std::cout << __vertexs[srci] << "[" << srci << "]" << " ";
+            visited[srci] = true; // 标记访问过了
+            // 找一个srci相邻的，没有访问过的点去往深度遍历
+            for (size_t i = 0; i < __vertexs.size(); ++i)
+                if (__matrix[srci][i] != __max_weight && visited[i] == false) // 遍历矩阵里面有连接的点就行
+                    __dfs(i, visited);
+        }
+
     public:
         // 遍历
         void bfs(const vertex_type &src)
@@ -96,6 +107,13 @@ namespace yufc_graph_matrix
                 levelSize = q.size();   // 此时levelSize就是下一层个数，就是现在队列的元素个数，因为我们已经把当前层出完了，剩下的都是下一层的
             }
             std::cout << "bfs done!" << std::endl;
+        }
+        void dfs(const vertex_type &src)
+        {
+            size_t srci = get_vertex_index(src);
+            std::vector<bool> visited(__vertexs.size(), false);
+            __dfs(srci, visited);
+            std::cout << std::endl << "dfs done" << std::endl;
         }
 
     public:
