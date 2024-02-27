@@ -1,6 +1,7 @@
 
 
 #include "Graph.hpp"
+#include <string.h>
 
 void test1()
 {
@@ -67,8 +68,34 @@ void test4()
     g.dfs('A');
 }
 
+void test5()
+{
+    // 测试克鲁斯卡尔算法
+    const char *str = "abcdefghi";
+    yufc_graph_matrix::graph<char, int> g(str, strlen(str));
+    g.add_edge('a', 'b', 4);
+    g.add_edge('a', 'h', 8);
+    // g.AddEdge('a', 'h', 9);
+    g.add_edge('b', 'c', 8);
+    g.add_edge('b', 'h', 11);
+    g.add_edge('c', 'i', 2);
+    g.add_edge('c', 'f', 4);
+    g.add_edge('c', 'd', 7);
+    g.add_edge('d', 'f', 14);
+    g.add_edge('d', 'e', 9);
+    g.add_edge('e', 'f', 10);
+    g.add_edge('f', 'g', 2);
+    g.add_edge('g', 'h', 1);
+    g.add_edge('g', 'i', 6);
+    g.add_edge('h', 'i', 7);
+    // 这个图就是课件上，算法导论上那个图
+    yufc_graph_matrix::graph<char, int> kminTree;
+    std::cout << "Kruskal:" << g.Kruskal(kminTree) << std::endl;
+    kminTree.print();
+}
+
 int main()
 {
-    test4();
+    test5();
     return 0;
 }

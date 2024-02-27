@@ -7,6 +7,8 @@
 #include <limits.h>
 #include <iostream>
 #include <queue>
+#include <assert.h>
+#include "union_find_disjoint_set.hpp"
 
 namespace yufc_graph_matrix
 {
@@ -14,6 +16,7 @@ namespace yufc_graph_matrix
     class graph
     {
     private:
+        typedef graph<vertex_type, weight_type, __max_weight, direction> self;
         std::vector<vertex_type> __vertexs;             // 顶点的集合
         std::map<vertex_type, int> __index_map;         // 顶点映射的下标
         std::vector<std::vector<weight_type>> __matrix; // 邻接矩阵
@@ -25,6 +28,7 @@ namespace yufc_graph_matrix
             2. 图结构关系写到文件，读取文件
             3. 手动添加边
         */
+        graph() = default;
         graph(const vertex_type *a, size_t n)
         {
             __vertexs.reserve(n);
@@ -55,16 +59,22 @@ namespace yufc_graph_matrix
         {
             size_t srci = get_vertex_index(src);
             size_t desti = get_vertex_index(dest);
-            __matrix[srci][desti] = weight;
+            __add_edge(srci, desti, weight);
+        }
+        void __add_edge(size_t srci, size_t dsti, const weight_type &weight)
+        {
+            // 添加一个版本，用下标来添加的，这个函数一般就给内部使用
+            __matrix[srci][dsti] = weight;
             // 如果是无向图
             if (direction == false)
-                __matrix[desti][srci] = weight;
+                __matrix[dsti][srci] = weight;
         }
 
     private:
         void __dfs(size_t srci, std::vector<bool> &visited)
         {
-            std::cout << __vertexs[srci] << "[" << srci << "]" << " ";
+            std::cout << __vertexs[srci] << "[" << srci << "]"
+                      << " ";
             visited[srci] = true; // 标记访问过了
             // 找一个srci相邻的，没有访问过的点去往深度遍历
             for (size_t i = 0; i < __vertexs.size(); ++i)
@@ -113,7 +123,60 @@ namespace yufc_graph_matrix
             size_t srci = get_vertex_index(src);
             std::vector<bool> visited(__vertexs.size(), false);
             __dfs(srci, visited);
-            std::cout << std::endl << "dfs done" << std::endl;
+            std::cout << std::endl
+                      << "dfs done" << std::endl;
+        }
+
+    public:
+        // 因为我们是用矩阵存边的，不好操作，所以我们定制一个边的类型
+        struct __edge
+        {
+            size_t __srci;
+            size_t __dsti;
+            weight_type __weight;
+            // __edge() = default;
+            __edge(size_t srci, size_t dsti, const weight_type &w)
+                : __srci(srci), __dsti(dsti), __weight(w) {}
+            bool operator>(const __edge &e) const { return this->__weight > e.__weight; }
+        };
+        // 最小生成树
+        weight_type Kruskal(self &minTree)
+        {
+            // 要先初始化最小生成树
+            size_t n = __vertexs.size();
+            minTree.__vertexs = this->__vertexs;
+            minTree.__index_map = this->__index_map;
+            minTree.__matrix.resize(n);
+            for (size_t i = 0; i < n; i++)
+                minTree.__matrix[i].resize(n, __max_weight);
+
+            assert(direction == false); // 只能无向图
+            // 如果有最小生成树，就返回到minTree里面，如果没有，就返回一个默认的weight_type
+            // 然后比较边，优先队列要重载一个比较才行
+            std::priority_queue<__edge, std::vector<__edge>, std::greater<__edge>> minq;
+            for (size_t i = 0; i < n; i++)
+                for (size_t j = 0; j < n; j++)
+                    if (i < j && __matrix[i][j] != __max_weight) // 表示有这条边，那就把这条边加入到优先队列中, i<j 可以保证无向图不会重复添加边
+                        minq.push(__edge(i, j, __matrix[i][j]));
+            // 找到最小的边，依次添加
+            int size = 0;                             // 选出n-1条边就行了
+            weight_type total_weight = weight_type(); // 总的权值
+            union_find_disjoint_set<int> ufs(n); // 这里不能用size_t
+            while (!minq.empty())
+            {
+                __edge min = minq.top(); // 选出一条边
+                minq.pop();
+                if (ufs.InSet(min.__srci, min.__dsti))
+                    continue;                                             // 如果这个边的两个顶点在一个集合里面，直接跳过本轮
+                minTree.__add_edge(min.__srci, min.__dsti, min.__weight); // 添加边就行了
+                ufs.Union(min.__srci, min.__dsti);
+                size++;
+                total_weight += min.__weight;
+            }
+            if (size == n - 1)
+                return total_weight;
+            else
+                return weight_type(); // 如果找不到，就返回一个缺省值
         }
 
     public:
