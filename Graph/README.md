@@ -442,3 +442,81 @@ dfs done
 ![](./assets/3.png)
 
 下面就是代码实现。
+
+**这里的测试用例，使用的是算法导论上面这张图的例子进行测试的。**
+
+```cpp
+// 最小生成树
+weight_type Kruskal(self &minTree)
+{
+    // 要先初始化最小生成树
+    size_t n = __vertexs.size();
+    minTree.__vertexs = this->__vertexs;
+    minTree.__index_map = this->__index_map;
+    minTree.__matrix.resize(n);
+    for (size_t i = 0; i < n; i++)
+        minTree.__matrix[i].resize(n, __max_weight);
+    assert(direction == false); // 只能无向图
+    // 如果有最小生成树，就返回到minTree里面，如果没有，就返回一个默认的weight_type
+    // 然后比较边，优先队列要重载一个比较才行
+    std::priority_queue<__edge, std::vector<__edge>, std::greater<__edge>> minq;
+    for (size_t i = 0; i < n; i++)
+        for (size_t j = 0; j < n; j++)
+            if (i < j && __matrix[i][j] != __max_weight) // 表示有这条边，那就把这条边加入到优先队列中, i<j 可以保证无向图不会重复添加边
+                minq.push(__edge(i, j, __matrix[i][j]));
+    // 找到最小的边，依次添加
+    int size = 0;                             // 选出n-1条边就行了
+    weight_type total_weight = weight_type(); // 总的权值
+    union_find_disjoint_set<int> ufs(n); // 这里不能用size_t
+    while (!minq.empty())
+    {
+        __edge min = minq.top(); // 选出一条边
+        minq.pop();
+        if (ufs.InSet(min.__srci, min.__dsti))
+            continue;                                             // 如果这个边的两个顶点在一个集合里面，直接跳过本轮
+        minTree.__add_edge(min.__srci, min.__dsti, min.__weight); // 添加边就行了
+        ufs.Union(min.__srci, min.__dsti);
+        size++;
+        total_weight += min.__weight;
+    }
+    if (size == n - 1)
+        return total_weight;
+    else
+        return weight_type(); // 如果找不到，就返回一个缺省值
+}
+```
+
+这个输出也是没有问题的，符合预期。
+
+```
+Kruskal:37
+[0]->a
+[1]->b
+[2]->c
+[3]->d
+[4]->e
+[5]->f
+[6]->g
+[7]->h
+[8]->i
+
+  0 1 2 3 4 5 6 7 8 
+0 * 4 * * * * * 8 * 
+1 4 * * * * * * * * 
+2 * * * 7 * 4 * * 2 
+3 * * 7 * 9 * * * * 
+4 * * * 9 * * * * * 
+5 * * 4 * * * 2 * * 
+6 * * * * * 2 * 1 * 
+7 8 * * * * * 1 * * 
+8 * * 2 * * * * * *
+```
+
+当然，如果想看选边的过程，也是在代码中打印出来，就能看到了。
+
+### Prim算法
+
+与Kruskal算法类似。Prim算法的工作原理与Dijkstra的最短路径算法相似。Prim算法所具有的一个性质是集合A中的边总是构成一棵树。如图所示，还是这个图，这棵树从一个任意的根结点r开始，一直长大到覆盖V中的所有结点时为止。算法每一步在连接集合A和A之外的结点的所有边中，选择一条轻量级边加入到A中。这条规则所加入的边都是对A安全的边。因此，当算法终止时，A中的边形成一棵最小生成树。本策略也属于贪心策略，因为每一步所加人的边都必须是使树的总权重增加量最小的边。
+
+![](./assets/4.png)
+

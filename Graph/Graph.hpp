@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 #include <limits.h>
 #include <iostream>
 #include <queue>
@@ -149,7 +150,6 @@ namespace yufc_graph_matrix
             minTree.__matrix.resize(n);
             for (size_t i = 0; i < n; i++)
                 minTree.__matrix[i].resize(n, __max_weight);
-
             assert(direction == false); // 只能无向图
             // 如果有最小生成树，就返回到minTree里面，如果没有，就返回一个默认的weight_type
             // 然后比较边，优先队列要重载一个比较才行
@@ -161,7 +161,7 @@ namespace yufc_graph_matrix
             // 找到最小的边，依次添加
             int size = 0;                             // 选出n-1条边就行了
             weight_type total_weight = weight_type(); // 总的权值
-            union_find_disjoint_set<int> ufs(n); // 这里不能用size_t
+            union_find_disjoint_set<int> ufs(n);      // 这里不能用size_t
             while (!minq.empty())
             {
                 __edge min = minq.top(); // 选出一条边
@@ -177,6 +177,29 @@ namespace yufc_graph_matrix
                 return total_weight;
             else
                 return weight_type(); // 如果找不到，就返回一个缺省值
+        }
+        weight_type Prim(self &minTree, const vertex_type &src)
+        {
+            // 同样先初始化
+            size_t n = __vertexs.size();
+            minTree.__vertexs = this->__vertexs;
+            minTree.__index_map = this->__index_map;
+            minTree.__matrix.resize(n);
+            for (size_t i = 0; i < n; i++)
+                minTree.__matrix[i].resize(n, __max_weight);
+            // prim算法需要一个原点
+            size_t srci = get_vertex_index(src);
+            std::set<int> X; // 加入了集合的点集合
+            std::set<int> Y; // 还没加入集合的点的集合
+            X.insert(srci);
+            for (size_t i = 0; i < n; ++i)
+                if (i != srci)
+                    Y.insert(i);
+            // 找X->Y中连接的边中选择最小的边
+            // 如果我们用优先队列的话，就有可能构成环
+            // 所以我们额外添加一步探环
+            std::priority_queue<__edge, std::vector<__edge>, std::greater<__edge>> minq;
+            
         }
 
     public:
