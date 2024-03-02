@@ -199,7 +199,32 @@ namespace yufc_graph_matrix
             // 如果我们用优先队列的话，就有可能构成环
             // 所以我们额外添加一步探环
             std::priority_queue<__edge, std::vector<__edge>, std::greater<__edge>> minq;
-            
+            for (size_t i = 0; i < n; ++i)
+                if (__matrix[srci][i] != __max_weight)
+                    minq.push(__edge(srci, i, __matrix[srci][i]));
+            // 选边
+            size_t cnt = 0;
+            weight_type total_weight = weight_type();
+            while (!minq.empty())
+            {
+                __edge min = minq.top();
+                minq.pop();
+                minTree.__add_edge(min.__srci, min.__dsti, min.__weight);
+                X.insert(min.__dsti);
+                Y.erase(min.__dsti);
+                ++cnt;
+                total_weight += min.__weight;
+                if (cnt == n - 1)
+                    break;
+                for (size_t i = 0; i < n; ++i)
+                    if (__matrix[min.__dsti][i] != __max_weight && X.count(min.__dsti) == 0) // 以前已经加入了的点，不要再加了
+                        minq.push(__edge(min.__dsti, i, __matrix[min.__dsti][i]));
+            }
+            // 添加了n-1条边之后，停止
+            std::cout << cnt << ":" << n << std::endl;
+            if (cnt == n - 1)
+                return total_weight;
+            return weight_type();
         }
 
     public:

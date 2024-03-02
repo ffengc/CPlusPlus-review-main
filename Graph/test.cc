@@ -92,6 +92,10 @@ void test5()
     yufc_graph_matrix::graph<char, int> kminTree;
     std::cout << "Kruskal:" << g.Kruskal(kminTree) << std::endl;
     kminTree.print();
+    std::cout << "------------------------------------------" << std::endl;
+    yufc_graph_matrix::graph<char, int> kminTree2;
+    std::cout << "Prim: " << g.Prim(kminTree2, 'a') << std::endl;
+    kminTree2.print();
 }
 
 int main()
