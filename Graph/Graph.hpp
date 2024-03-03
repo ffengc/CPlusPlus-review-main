@@ -234,7 +234,7 @@ namespace yufc_graph_matrix
             else
                 return weight_type();
         }
-
+        
     public:
         void print()
         {
