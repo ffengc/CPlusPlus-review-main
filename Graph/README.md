@@ -520,3 +520,64 @@ Kruskal:37
 
 ![](./assets/4.png)
 
+Prim算法代码：
+
+```cpp
+weight_type Prim(self &minTree, const weight_type &src)
+{
+    size_t srci = get_vertex_index(src);
+    size_t n = __vertexs.size();
+    minTree.__vertexs = __vertexs;
+    minTree.__index_map = __index_map;
+    minTree.__matrix.resize(n);
+    for (size_t i = 0; i < n; ++i)
+    {
+        minTree.__matrix[i].resize(n, __max_weight);
+    }
+    std::vector<bool> X(n, false);
+    std::vector<bool> Y(n, true);
+    X[srci] = true;
+    Y[srci] = false;
+    // 从X->Y集合中连接的边里面选出最小的边
+    std::priority_queue<__edge, std::vector<__edge>, std::greater<__edge>> minq;
+    // 先把srci连接的边添加到队列中
+    for (size_t i = 0; i < n; ++i)
+        if (__matrix[srci][i] != __max_weight)
+            minq.push(__edge(srci, i, __matrix[srci][i]));
+
+    // std::cout << "Prim开始选边" << std::endl;
+    size_t size = 0;
+    weight_type totalW = weight_type();
+    while (!minq.empty())
+    {
+        __edge min = minq.top();
+        minq.pop();
+        // 最小边的目标点也在X集合，则构成环
+        if (X[min.__dsti])
+        {
+            // 构成环
+            // print logs or do nothing
+        }
+        else
+        {
+            minTree.__add_edge(min.__srci, min.__dsti, min.__weight);
+            X[min.__dsti] = true;
+            Y[min.__dsti] = false;
+            ++size;
+            totalW += min.__weight;
+            if (size == n - 1) // 找够了边
+                break;
+            // 把Y集合连出去的边都加入加入到优先队列里面，准备下一次循环选最小的边
+            for (size_t i = 0; i < n; ++i)
+                if (__matrix[min.__dsti][i] != __max_weight && Y[i])
+                    minq.push(__edge(min.__dsti, i, __matrix[min.__dsti][i]));
+        }
+    }
+
+    if (size == n - 1)
+        return totalW;
+    else
+        return weight_type();
+}
+```
+

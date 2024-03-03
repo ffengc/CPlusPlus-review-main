@@ -178,53 +178,61 @@ namespace yufc_graph_matrix
             else
                 return weight_type(); // 如果找不到，就返回一个缺省值
         }
-        weight_type Prim(self &minTree, const vertex_type &src)
+        weight_type Prim(self &minTree, const weight_type &src)
         {
-            // 同样先初始化
-            size_t n = __vertexs.size();
-            minTree.__vertexs = this->__vertexs;
-            minTree.__index_map = this->__index_map;
-            minTree.__matrix.resize(n);
-            for (size_t i = 0; i < n; i++)
-                minTree.__matrix[i].resize(n, __max_weight);
-            // prim算法需要一个原点
             size_t srci = get_vertex_index(src);
-            std::set<int> X; // 加入了集合的点集合
-            std::set<int> Y; // 还没加入集合的点的集合
-            X.insert(srci);
+            size_t n = __vertexs.size();
+            minTree.__vertexs = __vertexs;
+            minTree.__index_map = __index_map;
+            minTree.__matrix.resize(n);
             for (size_t i = 0; i < n; ++i)
-                if (i != srci)
-                    Y.insert(i);
-            // 找X->Y中连接的边中选择最小的边
-            // 如果我们用优先队列的话，就有可能构成环
-            // 所以我们额外添加一步探环
+            {
+                minTree.__matrix[i].resize(n, __max_weight);
+            }
+            std::vector<bool> X(n, false);
+            std::vector<bool> Y(n, true);
+            X[srci] = true;
+            Y[srci] = false;
+            // 从X->Y集合中连接的边里面选出最小的边
             std::priority_queue<__edge, std::vector<__edge>, std::greater<__edge>> minq;
+            // 先把srci连接的边添加到队列中
             for (size_t i = 0; i < n; ++i)
                 if (__matrix[srci][i] != __max_weight)
                     minq.push(__edge(srci, i, __matrix[srci][i]));
-            // 选边
-            size_t cnt = 0;
-            weight_type total_weight = weight_type();
+
+            // std::cout << "Prim开始选边" << std::endl;
+            size_t size = 0;
+            weight_type totalW = weight_type();
             while (!minq.empty())
             {
                 __edge min = minq.top();
                 minq.pop();
-                minTree.__add_edge(min.__srci, min.__dsti, min.__weight);
-                X.insert(min.__dsti);
-                Y.erase(min.__dsti);
-                ++cnt;
-                total_weight += min.__weight;
-                if (cnt == n - 1)
-                    break;
-                for (size_t i = 0; i < n; ++i)
-                    if (__matrix[min.__dsti][i] != __max_weight && X.count(min.__dsti) == 0) // 以前已经加入了的点，不要再加了
-                        minq.push(__edge(min.__dsti, i, __matrix[min.__dsti][i]));
+                // 最小边的目标点也在X集合，则构成环
+                if (X[min.__dsti])
+                {
+                    // 构成环
+                    // print logs or do nothing
+                }
+                else
+                {
+                    minTree.__add_edge(min.__srci, min.__dsti, min.__weight);
+                    X[min.__dsti] = true;
+                    Y[min.__dsti] = false;
+                    ++size;
+                    totalW += min.__weight;
+                    if (size == n - 1) // 找够了边
+                        break;
+                    // 把Y集合连出去的边都加入加入到优先队列里面，准备下一次循环选最小的边
+                    for (size_t i = 0; i < n; ++i)
+                        if (__matrix[min.__dsti][i] != __max_weight && Y[i])
+                            minq.push(__edge(min.__dsti, i, __matrix[min.__dsti][i]));
+                }
             }
-            // 添加了n-1条边之后，停止
-            std::cout << cnt << ":" << n << std::endl;
-            if (cnt == n - 1)
-                return total_weight;
-            return weight_type();
+
+            if (size == n - 1)
+                return totalW;
+            else
+                return weight_type();
         }
 
     public:
