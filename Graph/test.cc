@@ -57,7 +57,6 @@ void test3()
     std::cout << std::endl;
     g.bfs('A');
 }
-
 void test4()
 {
     // 测试dfs
@@ -67,7 +66,6 @@ void test4()
     std::cout << std::endl;
     g.dfs('A');
 }
-
 void test5()
 {
     // 测试克鲁斯卡尔算法
@@ -98,8 +96,28 @@ void test5()
     kminTree2.print();
 }
 
+void test6()
+{
+    // 测试迪杰斯特拉
+    const char *str = "syztx";
+    yufc_graph_matrix::graph<char, int, INT_MAX, true> g(str, strlen(str));
+    g.add_edge('s', 't', 10);
+    g.add_edge('s', 'y', 5);
+    g.add_edge('y', 't', 3);
+    g.add_edge('y', 'x', 9);
+    g.add_edge('y', 'z', 2);
+    g.add_edge('z', 's', 7);
+    g.add_edge('z', 'x', 6);
+    g.add_edge('t', 'y', 2);
+    g.add_edge('t', 'x', 1);
+    g.add_edge('x', 'z', 4);
+    std::vector<int> dist;
+    std::vector<int> parentPath;
+    g.Dijkstra('s', dist, parentPath);
+    g.print_short_path('s', dist, parentPath);
+}
 int main()
 {
-    test5();
+    test6();
     return 0;
 }

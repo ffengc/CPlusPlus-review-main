@@ -9,6 +9,7 @@
 #include <iostream>
 #include <queue>
 #include <assert.h>
+#include <algorithm>
 #include "union_find_disjoint_set.hpp"
 
 namespace yufc_graph_matrix
@@ -234,7 +235,77 @@ namespace yufc_graph_matrix
             else
                 return weight_type();
         }
-        
+
+    public:
+        // 打印最短路径
+        void print_short_path(const vertex_type &src, std::vector<weight_type> &dist, const std::vector<int> &parent_path)
+        {
+            size_t srci = get_vertex_index(src);
+            size_t n = __vertexs.size();
+            for (size_t i = 0; i < n; ++i)
+            {
+                if (i == srci)
+                    continue;
+                // 找出i顶点的路径
+                std::vector<int> current_path;
+                size_t parent_i = i;
+                while (parent_i != srci)
+                {
+                    current_path.push_back(parent_i); // 先把自己存进去，然后找上一层父亲
+                    parent_i = parent_path[parent_i];
+                }
+                current_path.push_back(srci); // 最后把原点加进去就行了
+                std::reverse(current_path.begin(), current_path.end());
+                // 此时已经找到路径了
+                for (const auto &e : current_path)
+                    std::cout << __vertexs[e] << "[" << e << "]"
+                              << "->";
+                std::cout << "<" << dist[i] << ">" << std::endl;
+            }
+        }
+        // 最短路
+        void Dijkstra(const vertex_type &src, std::vector<weight_type> &dist, std::vector<int> &parent_path)
+        {
+            // 用一个数组存 s->{yztx} 的距离
+            size_t srci = get_vertex_index(src);
+            size_t n = __vertexs.size();
+            dist.resize(n, __max_weight);
+            parent_path.resize(n, -1);
+            dist[srci] = 0; // 自己到自己的长度就是0
+            parent_path[srci] = srci;
+            std::vector<bool> S(n, false); // 已经确定最短路径的顶点集合
+            for (size_t cnt = 0; cnt < n; ++cnt)
+            {
+                // 选最短路径顶点且不在S更新其他路径
+                int u = 0;
+                weight_type min = __max_weight;
+                for (size_t i = 0; i < n; ++i)
+                {
+                    if (S[i] == false && dist[i] < min)
+                    {
+                        u = i;
+                        min = dist[i];
+                    }
+                }
+                // 选到最小的点叫u
+                S[u] = true;
+                // 松弛更新 srci->u 已经确定了 u->... 需要更新
+                for (size_t v = 0; v < n; v++)
+                {
+                    // 确认u连接的所有边v
+                    /*srci->u 就是 dist[u]
+                    u->v 就是 __matrix[u][v]
+                    srci->v 就是 dist[v]
+                    如果 srci->u + u->v < srci->v 更新 srci->v*/
+                    if (S[v] == false && __matrix[u][v] != __max_weight && dist[u] + __matrix[u][v] < dist[v])
+                    {
+                        dist[v] = dist[u] + __matrix[u][v];
+                        parent_path[v] = u; // v的父亲路径节点就不是srci了，就是u了
+                    }
+                }
+            }
+        }
+
     public:
         void print()
         {
