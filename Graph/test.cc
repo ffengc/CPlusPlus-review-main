@@ -116,8 +116,29 @@ void test6()
     g.Dijkstra('s', dist, parentPath);
     g.print_short_path('s', dist, parentPath);
 }
+void test7()
+{
+    const char *str = "syztx";
+    yufc_graph_matrix::graph<char, int, INT_MAX, true> g(str, strlen(str));
+    g.add_edge('s', 't', 6);
+    g.add_edge('s', 'y', 7);
+    g.add_edge('y', 'z', 9);
+    g.add_edge('y', 'x', -3);
+    g.add_edge('z', 's', 2);
+    g.add_edge('z', 'x', 7);
+    g.add_edge('t', 'x', 5);
+    g.add_edge('t', 'y', 8);
+    g.add_edge('t', 'z', -4);
+    g.add_edge('x', 't', -2);
+    std::vector<int> dist;
+    std::vector<int> parentPath;
+    if (g.BellManFord('s', dist, parentPath))
+        g.print_short_path('s', dist, parentPath);
+    else
+        std::cout << "There is a negative weight circuit present" << std::endl;
+}
 int main()
 {
-    test6();
+    test7();
     return 0;
 }

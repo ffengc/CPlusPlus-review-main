@@ -305,6 +305,38 @@ namespace yufc_graph_matrix
                 }
             }
         }
+        bool BellManFord(const vertex_type &src, std::vector<weight_type> &dist, std::vector<int> &parent_path)
+        {
+            /*
+            return value:
+                false: There is a negative weight circuit present
+                true: Find the shortest path
+            */
+            size_t N = __vertexs.size();
+            size_t srci = get_vertex_index(src);
+            dist.resize(N, __max_weight);
+            parent_path.resize(N, -1);
+            dist[srci] = weight_type();
+            for (size_t k = 0; k < N; k++)
+            {
+                std::cout << "update round: " << k << std::endl;
+                // i->j 更新k次
+                bool is_update = false;
+                for (size_t i = 0; i < N; i++)
+                    for (size_t j = 0; j < N; j++)
+                        // srci->i + i->j < src->j
+                        if (__matrix[i][j] != __max_weight && dist[i] + __matrix[i][j] < dist[j])
+                        {
+                            dist[j] = dist[i] + __matrix[i][j];
+                            parent_path[j] = i;
+                            is_update = true;
+                        }
+                // 如果此轮没有更新出最短路径，后面的轮次就不用再走了
+                if (is_update == false)
+                    break;
+            }
+            return true;
+        }
 
     public:
         void print()
