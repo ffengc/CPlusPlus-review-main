@@ -335,7 +335,52 @@ namespace yufc_graph_matrix
                 if (is_update == false)
                     break;
             }
+            // 前面其实已经跟新完成了，如果还能发生更新，说明会出现负环情况
+            for (size_t i = 0; i < N; i++)
+                for (size_t j = 0; j < N; j++)
+                    if (__matrix[i][j] != __max_weight && dist[i] + __matrix[i][j] < dist[j])
+                        return false; // 如果还能发生更新，返回false
             return true;
+        }
+        void FloydWarshall(std::vector<std::vector<weight_type>> &vv_dist, std::vector<std::vector<int>> &vv_parent_path)
+        {
+            // 初始化
+            size_t n = __vertexs.size();
+            vv_dist.resize(n);
+            vv_parent_path.resize(n);
+            for (size_t i = 0; i < n; ++i)
+            {
+                vv_dist[i].resize(n, __max_weight);
+                vv_parent_path[i].resize(n, -1);
+            }
+            // 先把直接相连的边更新一下
+            for (size_t i = 0; i < n; ++i)
+                for (size_t j = 0; j < n; ++j)
+                {
+                    if (__matrix[i][j] != __max_weight)
+                    {
+                        vv_dist[i][j] = __matrix[i][j];
+                        vv_parent_path[i][j] = i;
+                    }
+                    if (i == j)
+                        vv_dist[i][j] = 0;
+                }
+            // 最短路径的更新 i->{其他顶点}->j
+            // k作为i->j的中间点，k可能是任意一个顶点，尝试去更新i->j的路径
+            for (size_t k = 0; k < n; k++)
+                for (size_t i = 0; i < n; i++)
+                    for (size_t j = 0; j < n; j++)
+                        if (vv_dist[i][k] != __max_weight && vv_dist[k][j] != __max_weight && vv_dist[i][k] + vv_dist[k][j] < vv_dist[i][j])
+                        {
+                            vv_dist[i][j] = vv_dist[i][k] + vv_dist[k][j];
+                            vv_parent_path[i][j] = vv_parent_path[k][j]; // 注意，这里不是=k
+                            // 应该要找跟j相连的上一个邻接顶点，但是k不一定是邻接顶点哦！
+                            // 所以要找 vv_parent_path[k][j]
+                            /*
+                                如果k->j直接相连，上一个点就是k，vv_parent_path[k][j]就是k
+                                如果k->j不直接相连，k->...->x->j，vv_parent_path[k][j]是x
+                            */
+                        }
         }
 
     public:
@@ -425,12 +470,6 @@ namespace yufc_graph_link_table
                 eg->__next = __table[desti];
                 __table[desti] = eg;
             }
-        }
-
-    public:
-        // 遍历
-        void bfs(const vertex_type &src)
-        {
         }
 
     public:

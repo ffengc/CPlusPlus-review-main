@@ -681,3 +681,113 @@ Dijkstra算法只能用来解决正权图的单源最短路径问题，但有些
 
 ![](./assets/5.png)
 
+> Bellman-Ford算法的SPFA优化：[SPFA算法](https://baike.baidu.com/item/SPFA算法/8297411?fr=ge_ala)
+> 1. 第一轮更新：所有边入队列
+> 2. 后面的轮次：更新最短路径的边入队列
+
+
+代码：
+```cpp
+bool BellManFord(const vertex_type &src, std::vector<weight_type> &dist, std::vector<int> &parent_path)
+{
+    /*
+    return value:
+        false: There is a negative weight circuit present
+        true: Find the shortest path
+    */
+    size_t N = __vertexs.size();
+    size_t srci = get_vertex_index(src);
+    dist.resize(N, __max_weight);
+    parent_path.resize(N, -1);
+    dist[srci] = weight_type();
+    for (size_t k = 0; k < N; k++)
+    {
+        std::cout << "update round: " << k << std::endl;
+        // i->j 更新k次
+        bool is_update = false;
+        for (size_t i = 0; i < N; i++)
+            for (size_t j = 0; j < N; j++)
+                // srci->i + i->j < src->j
+                if (__matrix[i][j] != __max_weight && dist[i] + __matrix[i][j] < dist[j])
+                {
+                    dist[j] = dist[i] + __matrix[i][j];
+                    parent_path[j] = i;
+                    is_update = true;
+                }
+        // 如果此轮没有更新出最短路径，后面的轮次就不用再走了
+        if (is_update == false)
+            break;
+    }
+    // 前面其实已经跟新完成了，如果还能发生更新，说明会出现负环情况
+    for (size_t i = 0; i < N; i++)
+        for (size_t j = 0; j < N; j++)
+            if (__matrix[i][j] != __max_weight && dist[i] + __matrix[i][j] < dist[j])
+                return false; // 如果还能发生更新，返回false
+    return true;
+}
+```
+
+### 多源最短路径--Floyd-Warshall算法
+
+Floyd-Warshall算法是解决任意两点间的最短路径的一种算法。
+
+Floyd算法考虑的是一条最短路径的中间节点，即简单路径`p={v1,v2,...,vn}`上除v1和vn的任意节点。 设k是p的一个中间节点，那么从i到j的最短路径p就被分成i到k和k到j的两段最短路径p1，p2。p1 是从i到k且中间节点属于`{1，2，...，k-1}`取得的一条最短路径。p2是从k到j且中间节点属于`{1， 2，...，k-1}`取得的一条最短路径。
+
+![](./assets/6.png)
+
+Floyd-Warshall算法的原理是动态规划
+
+设 $D_{i, j, k}$  为从  $i$  到  $j$  的只以  $(1 . . k)$  集合中的节点为中间节点的最短路径的长度。
+1. 若最短路径经过点  $\mathrm{k}$ , 则  $D_{i, j, k}=D_{i, k, k-1}+D_{k, j, k-1}$ ;
+2. 若最短路径不经过点  $\mathrm{k}$ , 则  $D_{i, j, k}=D_{i, j, k-1}$  。
+
+因此,  $D_{i, j, k}=\min \left(D_{i, j, k-1}, D_{i, k, k-1}+D_{k, j, k-1}\right)$  。
+
+即Floyd算法本质是三维动态规划，D[i][j][k]表示从点i到点j只经过0到k个点最短路径，然后建立 起转移方程，然后通过空间优化，优化掉最后一维度，变成一个最短路径的迭代算法，最后即得 到所以点的最短路。
+
+![](./assets/7.png)
+
+
+代码：
+```cpp
+void FloydWarshall(std::vector<std::vector<weight_type>> &vv_dist, std::vector<std::vector<int>> &vv_parent_path)
+{
+    // 初始化
+    size_t n = __vertexs.size();
+    vv_dist.resize(n);
+    vv_parent_path.resize(n);
+    for (size_t i = 0; i < n; ++i)
+    {
+        vv_dist[i].resize(n, __max_weight);
+        vv_parent_path[i].resize(n, -1);
+    }
+    // 先把直接相连的边更新一下
+    for (size_t i = 0; i < n; ++i)
+        for (size_t j = 0; j < n; ++j)
+        {
+            if (__matrix[i][j] != __max_weight)
+            {
+                vv_dist[i][j] = __matrix[i][j];
+                vv_parent_path[i][j] = i;
+            }
+            if (i == j)
+                vv_dist[i][j] = 0;
+        }
+    // 最短路径的更新 i->{其他顶点}->j
+    // k作为i->j的中间点，k可能是任意一个顶点，尝试去更新i->j的路径
+    for (size_t k = 0; k < n; k++)
+        for (size_t i = 0; i < n; i++)
+            for (size_t j = 0; j < n; j++)
+                if (vv_dist[i][k] != __max_weight && vv_dist[k][j] != __max_weight && vv_dist[i][k] + vv_dist[k][j] < vv_dist[i][j])
+                {
+                    vv_dist[i][j] = vv_dist[i][k] + vv_dist[k][j];
+                    vv_parent_path[i][j] = vv_parent_path[k][j]; // 注意，这里不是=k
+                    // 应该要找跟j相连的上一个邻接顶点，但是k不一定是邻接顶点哦！
+                    // 所以要找 vv_parent_path[k][j]
+                    /*
+                        如果k->j直接相连，上一个点就是k，vv_parent_path[k][j]就是k
+                        如果k->j不直接相连，k->...->x->j，vv_parent_path[k][j]是x
+                    */
+                }
+}
+```

@@ -137,8 +137,33 @@ void test7()
     else
         std::cout << "There is a negative weight circuit present" << std::endl;
 }
+void test8()
+{
+    // 测试弗洛伊德算法
+    const char *str = "12345";
+    yufc_graph_matrix::graph<char, int, INT_MAX, true> g(str, strlen(str));
+    g.add_edge('1', '2', 3);
+    g.add_edge('1', '3', 8);
+    g.add_edge('1', '5', -4);
+    g.add_edge('2', '4', 1);
+    g.add_edge('2', '5', 7);
+    g.add_edge('3', '2', 4);
+    g.add_edge('4', '1', 2);
+    g.add_edge('4', '3', -5);
+    g.add_edge('5', '4', 6);
+    std::vector<std::vector<int>> vvDist;
+    std::vector<std::vector<int>> vvParentPath;
+    g.FloydWarshall(vvDist, vvParentPath);
+    // 打印任意两点之间的最短路径
+    for (size_t i = 0; i < strlen(str); ++i)
+    {
+        g.print_short_path(str[i], vvDist[i], vvParentPath[i]);
+        std::cout << std::endl;
+    }
+}
+
 int main()
 {
-    test7();
+    test8();
     return 0;
 }
