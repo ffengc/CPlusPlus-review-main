@@ -791,3 +791,6 @@ void FloydWarshall(std::vector<std::vector<weight_type>> &vv_dist, std::vector<s
                 }
 }
 ```
+
+
+**本部分原理讲解及图文大量参考了《算法导论》和《殷人昆 数据结构:用面向对象方法与C++语言描述 (第二版)》的内容。**
