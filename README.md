@@ -34,7 +34,9 @@
 
 - union_find_disjoint_set: [并查集](./union_find_disjoint_set/)
 
-- Graph: [图（还未实现完）](./Graph/)
+- Graph: [图](./Graph/)
+
+- LRUCache: [lru缓存](./LRUCache/)
 
 - random_lib: [C++ `<random>`库学习（还未实现完）](./random_lib/)
 
